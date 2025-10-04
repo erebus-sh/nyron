@@ -7,16 +7,8 @@
 // Push the changelog to the remote repository
 
 import { loadConfig } from "../core/loadConfig"
-import { type OptionValues } from "commander"
+import { type BumpOptions } from "./types"
 
-export interface BumpOptions extends OptionValues {
-    major?: boolean
-    minor?: boolean
-    patch?: boolean
-    tag?: boolean
-    prefix?: string
-}
-  
 export const bump = async (options: BumpOptions) => {
   const config = await loadConfig()
   console.log("🪄 Bumping versions with options:", options)

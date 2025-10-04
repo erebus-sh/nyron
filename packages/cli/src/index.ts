@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { program } from "commander"
-import { bump, type BumpOptions } from "./actions/bump"
+import { bump } from "./actions/bump"
+import { type BumpOptions } from "./actions/types"
 
 program
   .name("nyron")

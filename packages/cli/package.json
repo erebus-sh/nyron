@@ -19,6 +19,7 @@
   "dependencies": {
     "@types/semver": "^7.7.1",
     "commander": "^14.0.1",
-    "semver": "^7.7.2"
+    "semver": "^7.7.2",
+    "simple-git": "^3.28.0"
   }
 }
