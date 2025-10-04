@@ -5,6 +5,7 @@
 // Determic if in beta or not
 // Handle patching, minor, major extact bumping
 import semver from "semver"
+import type { BumpType } from "./types"
 
 /**
  * Increments a semantic version string according to the specified release type.
@@ -28,7 +29,7 @@ import semver from "semver"
  */
 export function bumpVersion(
   version: string,
-  type: "major" | "minor" | "patch" | "prerelease",
+  type: BumpType,
 ): string {
   if (type === "prerelease") {
     // For prerelease, bump the prerelease number or start a new beta prerelease

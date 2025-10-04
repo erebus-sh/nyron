@@ -16,11 +16,11 @@ program
 program
   .command("bump")
   .description("Bump versions intelligently across projects")
-  .option("-M, --major", "Bump major version")
-  .option("-m, --minor", "Bump minor version")
+  .option("-m, --major", "Bump major version")
+  .option("-i, --minor", "Bump minor version")
   .option("-p, --patch", "Bump patch version")
-  .option("-t, --tag", "Create a new tag after bumping")
-  .option("-f, --prefix <prefix>", "Filter to a specific tag prefix")
+  .option("-r, --prerelease", "Bump prerelease version")
+  .requiredOption("-x, --prefix <prefix>", "Filter to a specific tag prefix")
   .action(bump)
 
 // -----------------------------

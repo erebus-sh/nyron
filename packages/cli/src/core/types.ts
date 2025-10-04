@@ -1,0 +1,1 @@
+export type BumpType = "major" | "minor" | "patch" | "prerelease"

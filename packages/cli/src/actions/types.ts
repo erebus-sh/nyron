@@ -4,7 +4,7 @@ export interface BumpOptions extends OptionValues {
     major?: boolean
     minor?: boolean
     patch?: boolean
-    tag?: boolean
+    prerelease?: boolean
     prefix?: string
 }
   
