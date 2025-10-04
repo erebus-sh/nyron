@@ -9,20 +9,22 @@ import semver from "semver"
 /**
  * Increments a semantic version string according to the specified release type.
  *
- * This function leverages the `semver` library to accurately bump a version string,
- * supporting standard release types ("major", "minor", "patch") as well as prerelease increments.
- * When `isPrerelease` is set to `true`, the version is incremented to the next prerelease with the "beta" identifier,
- * following semantic versioning best practices.
+ * This function uses the `semver` library to bump a version string.
+ * It supports standard release types ("major", "minor", "patch") as well as "prerelease".
+ * When the type is "prerelease", the version is incremented to the next prerelease with the "beta" identifier,
+ * or starts a new beta prerelease if not already in prerelease.
  *
  * @param {string} version - The current semantic version string (e.g., "0.1.2").
- * @param {"major"|"minor"|"patch"} type - The type of version increment to perform.
- * @param {boolean} [isPrerelease=false] - If true, increments to the next "beta" prerelease version.
+ * @param {"major"|"minor"|"patch"|"prerelease"} type - The type of version increment to perform.
+ *   - "major", "minor", "patch": bumps the respective part of the version.
+ *   - "prerelease": bumps the prerelease number or starts a new "beta" prerelease.
  * @returns {string} The incremented semantic version string.
  *
  * @example
  * bumpVersion("0.1.2", "patch") // "0.1.3"
  * bumpVersion("0.1.2", "major") // "1.0.0"
- * bumpVersion("0.1.2", "patch", true) // "0.1.3-beta.0"
+ * bumpVersion("0.1.2", "prerelease") // "0.1.3-beta.0"
+ * bumpVersion("0.1.3-beta.0", "prerelease") // "0.1.3-beta.1"
  */
 export function bumpVersion(
   version: string,
@@ -118,13 +120,8 @@ export function isBeta(version: string): boolean {
  * EnterBeta("1.0.0-beta.2") // returns "1.0.0-beta.2"
  */
 export function enterBeta(version: string): string {
-    const parsed = semver.parse(version);
-
-    // If already a prerelease, return as-is
-    if (parsed?.prerelease && parsed.prerelease.length > 0) {
-        return version;
+    if (isBeta(version)) {
+        return version
     }
-
-    // Otherwise, increment to next patch and add beta prerelease
-    return semver.inc(version, 'prerelease', 'beta')!;
+    return bumpVersion(version, 'prerelease')
 }
