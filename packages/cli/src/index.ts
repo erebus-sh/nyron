@@ -5,6 +5,9 @@ import { changelog } from "./actions/changelog"
 import { diff } from "./actions/diff"
 import { init } from "./actions/init"
 import { tag } from "./actions/tag"
+import dotenv from "dotenv"
+
+dotenv.config()
 
 program
   .name("nyron")

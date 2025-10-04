@@ -14,6 +14,11 @@ export async function getLatestTag(prefix?: string) {
   return tags.at(-1) || null
 }
 
+export async function getPreviousTag(prefix?: string) {
+  const tags = await getTags(prefix)
+  return tags.at(-2) || null
+}
+
 export async function getTag(prefix: string, version: string) {
   const tags = await getTags(prefix)
   return tags.find(t => t === `${prefix}${version}`) || null
