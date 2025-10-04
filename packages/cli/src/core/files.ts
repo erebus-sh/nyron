@@ -8,3 +8,7 @@ export async function fileExists(path: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function writeFile(path: string, content: string): Promise<void> {
+  await fs.writeFile(path, content, "utf-8");
+}

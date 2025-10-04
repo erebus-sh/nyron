@@ -1,6 +1,7 @@
 #!/usr/bin/env bun
 import { program } from "commander"
 import { bump } from "./actions/bump"
+import { changelog } from "./actions/changelog"
 import { diff } from "./actions/diff"
 import { init } from "./actions/init"
 import { tag } from "./actions/tag"
@@ -22,6 +23,14 @@ program
   .option("-r, --prerelease", "Bump prerelease version")
   .requiredOption("-x, --prefix <prefix>", "Filter to a specific tag prefix")
   .action(bump)
+
+// -----------------------------
+// changelog
+// -----------------------------
+program
+  .command("changelog")
+  .description("Generate a changelog for the current project")
+  .action(changelog)
 
 // -----------------------------
 // diff

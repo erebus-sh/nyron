@@ -4,6 +4,7 @@ export interface ProjectConfig {
 }
 
 export interface NyronConfig {
+    repo: string
     projects: Record<string, ProjectConfig>
     autoChangelog?: boolean
     onPushReminder?: boolean
