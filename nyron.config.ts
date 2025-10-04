@@ -1,4 +1,4 @@
-import { defineConfig } from "@nyron/cli/config"
+import { defineConfig } from "@nyron/cli/src/config"
 
 export default defineConfig({
   projects: {
