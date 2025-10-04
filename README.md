@@ -1,7 +1,3 @@
-# turborepo-empty-starter
+# Nyron
 
-An empty Turborepo starter.
-
-```
-npx create-turbo -e https://github.com/tknickman/turborepo-empty-starter
-```
+Current versioning software sucks, so Nyron simply fixes it.
