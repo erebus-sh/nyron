@@ -8,3 +8,6 @@ export interface BumpOptions extends OptionValues {
     prefix?: string
 }
   
+export interface DiffOptions extends OptionValues {
+    prefix?: string
+}
