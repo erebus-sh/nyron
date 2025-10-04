@@ -33,8 +33,8 @@ export async function getPRsBetweenTags(repo: Repo, fromTag: string, toTag: stri
     if (!pr.merged_at) return false;
     // pr.merged_at is string | null, but we already checked for falsy above
     return (
-      new Date(pr.merged_at as string) >= new Date(fromDate) &&
-      new Date(pr.merged_at as string) <= new Date(toDate)
+      new Date(pr.merged_at) >= new Date(fromDate) &&
+      new Date(pr.merged_at) <= new Date(toDate)
     );
   });
 }
