@@ -17,6 +17,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "commander": "^14.0.1"
+    "commander": "^14.0.1",
+    "semver": "^7.7.2"
   }
 }

@@ -6,7 +6,7 @@
 // Create a new changelog
 // Push the changelog to the remote repository
 
-import { loadConfig } from "../loadConfig"
+import { loadConfig } from "../core/loadConfig"
 import { type OptionValues } from "commander"
 
 export interface BumpOptions extends OptionValues {
