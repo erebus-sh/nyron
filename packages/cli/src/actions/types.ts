@@ -11,3 +11,13 @@ export interface BumpOptions extends OptionValues {
 export interface DiffOptions extends OptionValues {
     prefix?: string
 }
+
+export interface InitOptions extends OptionValues {
+    force?: boolean
+    json?: boolean
+}
+
+export interface TagOptions extends OptionValues {
+    prefix: string
+    version: string
+}

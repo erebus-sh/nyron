@@ -20,6 +20,18 @@ export async function loadConfig(): Promise<NyronConfig> {
       process.exit(1)
     }
 
+    // Validate each project for tagPrefix and path
+    for (const [name, project] of Object.entries(config.projects)) {
+      if (!project.tagPrefix || !project.path) {
+        console.error(
+          `❌ Invalid nyron.config.ts — project "${name}" is missing required 'tagPrefix' or 'path' field.`
+        )
+        throw new Error(
+          `Project "${name}" in nyron.config.ts must have both 'tagPrefix' and 'path' fields.`
+        )
+      }
+    }
+
     console.log("✅ Loaded nyron config")
     return config
   } catch (err) {

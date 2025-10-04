@@ -13,3 +13,18 @@ export async function getLatestTag(prefix?: string) {
   const tags = await getTags(prefix)
   return tags.at(-1) || null
 }
+
+export async function getTag(prefix: string, version: string) {
+  const tags = await getTags(prefix)
+  return tags.find(t => t === `${prefix}${version}`) || null
+}
+
+export async function createTag(prefix: string, version: string) {
+  const tag = `${prefix}${version}`
+  await git.addTag(tag)
+  return tag
+}
+
+export async function pushTag(tag: string) {
+  await git.push("origin", tag)
+}
