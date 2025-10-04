@@ -26,13 +26,15 @@ import semver from "semver"
  */
 export function bumpVersion(
   version: string,
-  type: "major" | "minor" | "patch",
-  isPrerelease: boolean = false
+  type: "major" | "minor" | "patch" | "prerelease",
 ): string {
-  if (isPrerelease) {
-    return semver.inc(version, "prerelease", "beta")!;
+  if (type === "prerelease") {
+    // For prerelease, bump the prerelease number or start a new beta prerelease
+    return semver.inc(version, type, "beta")!;
+  } else {
+    // For major, minor, patch, bump normally
+    return semver.inc(version, type)!;
   }
-  return semver.inc(version, type)!;
 }
 
 /**

@@ -15,8 +15,8 @@ describe("semver", () => {
   it("should enter beta and increment the version", () => {
     const betaVersion = enterBeta("0.1.2")
     expect(betaVersion).toBe("0.1.3-beta.0")
-    const nextBetaMajor = bumpVersion(betaVersion, "major", true)
-    console.log("bumpVersion('0.1.3-beta.0', 'major', true) =", nextBetaMajor)
+    const nextBetaMajor = bumpVersion(betaVersion, 'prerelease')
+    console.log("bumpVersion('0.1.3-beta.0', 'prerelease') =", nextBetaMajor)
     expect(nextBetaMajor).toBe("0.1.3-beta.1")
   })
   it("should check if the version is beta", () => {
