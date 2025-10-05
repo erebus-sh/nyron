@@ -3,10 +3,15 @@
 // Returns the version
 
 import { readFileSync, writeFileSync } from "fs"
-import { resolve } from "path"
+import { resolve, basename } from "path"
 
 export const writePackageVersion = (path: string, version: string) => {
-  const packageJson = JSON.parse(readFileSync(resolve(path, "package.json"), "utf8"))
+  // Smart path handling: check if path already points to package.json
+  const packageJsonPath = basename(path) === "package.json" 
+    ? path 
+    : resolve(path, "package.json")
+  
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"))
   packageJson.version = version
-  writeFileSync(resolve(path, "package.json"), JSON.stringify(packageJson, null, 2))
+  writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))
 }   
