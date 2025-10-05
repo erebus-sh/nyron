@@ -16,7 +16,15 @@ export async function tag(options: TagOptions) {
 
   // 2. Create the tag
   console.log(`🏷️  Creating tag ${tagName}...`)
-  await createTag(options.prefix, options.version)
+  try {
+    await createTag(options.prefix, options.version)
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("no commits")) {
+      console.error(`❌ ${error.message}`)
+      process.exit(1)
+    }
+    throw error
+  }
 
   // 3. Push the tag to origin (optional, but smart)
   try {

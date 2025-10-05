@@ -4,6 +4,15 @@
 import { simpleGit } from "simple-git"
 const git = simpleGit()
 
+async function hasCommits(): Promise<boolean> {
+  try {
+    await git.revparse(["HEAD"])
+    return true
+  } catch {
+    return false
+  }
+}
+
 export async function getTags(prefix?: string) {
   const { all } = await git.tags()
   return prefix ? all.filter(t => t.startsWith(prefix)) : all
@@ -26,6 +35,12 @@ export async function getTag(prefix: string, version: string) {
 
 export async function createTag(prefix: string, version: string) {
   const tag = `${prefix}${version}`
+  
+  // Check if repository has commits before creating tag
+  if (!(await hasCommits())) {
+    throw new Error("Cannot create tag: repository has no commits yet. Please make at least one commit first.")
+  }
+  
   await git.addTag(tag)
   return tag
 }

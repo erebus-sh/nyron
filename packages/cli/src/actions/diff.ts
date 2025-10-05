@@ -13,6 +13,7 @@ export async function diff(options: DiffOptions) {
     const latest = await getLatestTag(project.tagPrefix)
     if (!latest) {
       console.log(`⚠️ No tag found for ${name}`)
+      console.log("You can create a tag with `nyron tag <version> <prefix>`")
       continue
     }
 
@@ -20,6 +21,6 @@ export async function diff(options: DiffOptions) {
     console.log(`\n📦 ${name} (${latest})`)
     commits.length
       ? commits.forEach(c => console.log("  -", c))
-      : console.log("  No changes since last tag.")
+      : console.log("  No changes since last tag. You can create a tag with `nyron tag <version> <prefix>`")
   }
 }

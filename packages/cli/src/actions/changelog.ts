@@ -12,11 +12,13 @@ export async function changelog(options: ChangelogOptions) {
   const latest = await getLatestTag(options.prefix)
   if (!latest) {
     console.log(`⚠️ No tag found for ${options.prefix}`)
+    console.log("You can create a tag with `nyron tag <version> <prefix>`")
     return
   }
   const previous = await getPreviousTag(options.prefix)
   if (!previous) {
     console.log(`⚠️ No previous tag found for ${options.prefix}`)
+    console.log("You can create a tag with `nyron tag <version> <prefix>`")
     return
   }
   const repo = parseRepo(config.repo)
