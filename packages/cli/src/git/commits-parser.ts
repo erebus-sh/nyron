@@ -42,8 +42,6 @@ export function parseCommits(commits: CommitDiff[]): ParsedCommits {
 
     groups[normalizedType][scopeKey].push({ type: normalizedType, scope: scopeKey as string, message: message!, raw })
     // TODO: Extract PR related to the commit it self or where it exists
-
-    return groups
   }
   return groups
 }
