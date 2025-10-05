@@ -23,7 +23,7 @@ program
 program
   .command("bump")
   .description("Bump versions intelligently across projects")
-  .option("-t, --type <type>", "Bump type", BumpType.join(", "))
+  .requiredOption("-t, --type <type>", "Bump type", BumpType.join(", "))
   .requiredOption("-x, --prefix <prefix>", "Filter to a specific tag prefix")
   .action(bump)
 
