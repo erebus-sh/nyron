@@ -27,12 +27,12 @@
 import { loadConfig } from "../core/loadConfig"
 import { type BumpOptions } from "./types"
 import { createTag, getLatestTag, pushTag, tagExists } from "../git/tags"
-import { getCommitsSince } from "../github/commits"
+import { getCommitsSince, formatCommitsSinceLog } from "../utils/getCommitsSince"
 import { bumpVersion } from "../core/semver"
 import { validatePackage } from "../utils/validatePackage"
 import { writePackageVersion } from "../package/write"
 import { writeChangelog } from "../changelog/write"
-import { parseCommits, organizeForChangelog, filterMetaCommits } from "../git/commits-parser"
+import { parseCommits, organizeForChangelog } from "../git/commits-parser"
 import { simpleGit } from "simple-git"
 import { buildChangelogPath } from "../changelog/file-parser"
 
@@ -61,19 +61,10 @@ const validate = async (options: BumpOptions) => {
   }
   console.log(`✅ Latest tag: ${lastTag}`)
 
-  const commitsSince = await getCommitsSince(lastTag, config.repo)
-  if (commitsSince.length === 0) {
-    throw new Error(`❌ No new commits since last release\n   → Make some changes and commit them before bumping`)
-  }
+  const commitsResult = await getCommitsSince(lastTag, config.repo)
+  const { realCommits } = commitsResult
   
-  // Filter out meta commits (version bumps, changelog updates)
-  const realCommits = filterMetaCommits(commitsSince)
-  
-  if (realCommits.length === 0) {
-    throw new Error(`❌ No substantive commits to release\n   → Only version bump and changelog commits found since ${lastTag}\n   → Add feature, fix, or other meaningful commits before bumping`)
-  }
-  
-  console.log(`✅ Found ${realCommits.length} commit${realCommits.length === 1 ? '' : 's'} since ${lastTag}${commitsSince.length - realCommits.length > 0 ? ` (filtered ${commitsSince.length - realCommits.length} meta commit${commitsSince.length - realCommits.length === 1 ? '' : 's'})` : ''}`)
+  console.log(formatCommitsSinceLog(commitsResult))
 
   // 3) Verify package.json
   const packageJson = await validatePackage(path)
