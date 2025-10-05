@@ -1,6 +1,7 @@
 {
   "name": "@nyron/cli",
   "module": "index.ts",
+  "version": "0.1.0",
   "type": "module",
   "private": true,
   "bin": {
@@ -11,13 +12,13 @@
     "cli": "bun run build && bun dist/index.js"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/semver": "^7.7.1"
   },
   "peerDependencies": {
     "typescript": "^5"
   },
   "dependencies": {
-    "@types/semver": "^7.7.1",
     "commander": "^14.0.1",
     "dotenv": "^17.2.3",
     "octokit": "^5.0.3",

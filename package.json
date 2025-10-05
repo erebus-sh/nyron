@@ -2,7 +2,7 @@
   "name": "nyron",
   "version": "1.0.0",
   "private": true,
-  "description": "An empty Turborepo starter",
+  "description": "Nyron official monorepo",
   "main": "index.js",
   "scripts": {
     "build": "turbo build",
