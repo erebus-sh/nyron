@@ -29,9 +29,9 @@ export async function getCommitsSince(lastTag: string, repo: string): Promise<Co
   
   // Filter out meta commits (version bumps, changelog updates)
   const realCommits = filterMetaCommits(commitsSince)
-  
+
   if (realCommits.length === 0) {
-    throw new Error(`❌ No substantive commits to release\n   → Only version bump and changelog commits found since ${lastTag}\n   → Add feature, fix, or other meaningful commits before bumping`)
+    throw new Error(`❌ No substantive commits to release\n   → Only version bump and changelog commits found since ${lastTag}\n   → Add feature, fix, or other meaningful commits before bumping\n\n   → Make sure you sync your commits to GitHub`)
   }
   
   return {
