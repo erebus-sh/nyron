@@ -1,41 +1,51 @@
 {
   "name": "@nyron/cli",
-  "module": "index.ts",
   "version": "0.1.0",
   "type": "module",
-  "private": true,
   "bin": {
     "nyron": "./dist/index.js"
   },
+  "files": ["dist"],
   "scripts": {
     "clean": "rm -rf dist",
     "build:binary": "bun build src/index.ts --outfile dist/index.js --target bun",
     "build:esm": "tsdown --config build.config.ts",
+    "build": "bun run clean && bun run build:binary && bun run build:esm",
     "cli": "bun run build && bun dist/index.js",
-    "build": "bun run clean && bun run build:binary && bun run build:esm"
-  },
-  "devDependencies": {
-    "@types/bun": "latest",
-    "@types/semver": "^7.7.1"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
+    "prepublishOnly": "bun run build"
   },
   "dependencies": {
     "commander": "^14.0.1",
     "dotenv": "^17.2.3",
     "octokit": "^5.0.3",
     "semver": "^7.7.2",
-    "simple-git": "^3.28.0",
+    "simple-git": "^3.28.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/semver": "^7.7.1",
     "tsdown": "^0.15.6"
   },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  },
   "exports": {
-    "./cli": "./dist/index.js",
     "./package.json": "./package.json",
     "./config": {
       "types": "./dist/core/config.d.ts",
       "import": "./dist/core/config.js",
       "require": "./dist/core/config.cjs"
     }
-  }
+  },
+  "description": "Nyron CLI — smarter multi-package versioning powered by Bun",
+  "keywords": ["nyron", "cli", "bun", "versioning", "monorepo"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/erebus-sh/nyron"
+  },
+  "author": "#V0ID"
 }
