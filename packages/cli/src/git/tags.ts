@@ -33,6 +33,11 @@ export async function getTag(prefix: string, version: string) {
   return tags.find(t => t === `${prefix}${version}`) || null
 }
 
+export async function tagExists(tag: string) {
+  const tags = await getTags()
+  return tags.includes(tag)
+}
+
 export async function createTag(prefix: string, version: string) {
   const tag = `${prefix}${version}`
   
