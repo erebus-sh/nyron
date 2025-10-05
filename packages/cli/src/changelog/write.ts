@@ -1,7 +1,7 @@
-import { resolve, join } from "path"
 import { mkdir } from "fs/promises"
 import { writeFile, fileExists } from "../core/files"
 import { renderTemplate } from "../utils/renderTemplate"
+import { buildChangelogPath, buildChangelogDir } from "./file-parser"
 
 interface WriteChangelogOptions {
     prefix: string
@@ -10,8 +10,6 @@ interface WriteChangelogOptions {
     fixes: string[]
     chores: string[]
 }
-
-const ROOT_PATH = ".nyron"
 
 export async function writeChangelog(options: WriteChangelogOptions) {
     const content = renderTemplate("default", {
@@ -23,9 +21,8 @@ export async function writeChangelog(options: WriteChangelogOptions) {
         chores: options.chores,
     })
     
-    const changelogfileName = `CHANGELOG-${options.prefix}-${options.version.replace(/[@/]/g, "_")}.md`
-    const changelogDir = resolve(ROOT_PATH, options.prefix)
-    const changelogPath = join(changelogDir, changelogfileName)
+    const changelogDir = buildChangelogDir(options.prefix)
+    const changelogPath = buildChangelogPath(options.prefix, options.version)
     
     // Ensure the directory exists
     await mkdir(changelogDir, { recursive: true })

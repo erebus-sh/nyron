@@ -15,6 +15,7 @@ import { ask } from "../core/prompts"
 import { bumpVersion } from "../core/semver"
 import { validatePackage } from "../utils/validatePackage"
 import { writePackageVersion } from "../package/write"
+import { buildChangelogPath } from "../changelog/file-parser"
 
 // ------------------------------------------------------------
 // Phase 1: Validate (dry run)
@@ -64,9 +65,8 @@ const validate = async (options: BumpOptions) => {
   }
   console.log(`✓ New version: ${newVersion} (${options.type} bump)`)
 
-  // 5) Check changelog (with user pro  mpt)
-  const safeTag = lastTag.replace(/[@/]/g, "_")
-  const changelogPath = `.nyron/${path}/CHANGELOG-${safeTag}.md`
+  // 5) Check changelog (with user prompt)
+  const changelogPath = buildChangelogPath(tagPrefix, version)
   if (!(await fileExists(changelogPath))) {
     console.log(`⚠️  No changelog found for ${path}`)
     const confirm = await ask(
