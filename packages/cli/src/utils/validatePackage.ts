@@ -2,10 +2,10 @@ import { join } from "node:path"
 import { promises as fs } from "node:fs"
 
 export interface PackageValidation {
-  valid: boolean
-  path: string
-  version?: string
-  error?: string
+    valid: boolean
+    path: string
+    version?: string
+    error?: string
 }
 
 /**
@@ -16,34 +16,41 @@ export interface PackageValidation {
  * @returns Promise<PackageValidation>
  */
 export async function validatePackage(basePath: string): Promise<PackageValidation> {
-  const pkgPath = join(basePath, "package.json")
+    const pkgPath = join(basePath, "package.json")
 
-  try {
-    // check if file exists
-    await fs.access(pkgPath)
+    try {
+        // check if file exists
+        await fs.access(pkgPath)
 
-    // read and parse
-    const content = await fs.readFile(pkgPath, "utf8")
-    const pkg = JSON.parse(content)
+        // read and parse
+        const content = await fs.readFile(pkgPath, "utf8")
+        const pkg = JSON.parse(content)
 
-    if (typeof pkg.version !== "string") {
-      return {
-        valid: false,
-        path: pkgPath,
-        error: `Missing or invalid "version" field in package.json`,
-      }
+        if (typeof pkg.version !== "string") {
+            return {
+                valid: false,
+                path: pkgPath,
+                error: `Missing or invalid "version" field in package.json`,
+            }
+        }
+
+        return {
+            valid: true,
+            path: pkgPath,
+            version: pkg.version,
+        }
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            return {
+                valid: false,
+                path: pkgPath,
+                error: `Failed to validate package.json: ${err.message}`,
+            }
+        }
+        return {
+            valid: false,
+            path: pkgPath,
+            error: `Failed to validate package.json: ${err}`,
+        }
     }
-
-    return {
-      valid: true,
-      path: pkgPath,
-      version: pkg.version,
-    }
-  } catch (err: any) {
-    return {
-      valid: false,
-      path: pkgPath,
-      error: `Failed to validate package.json: ${err.message}`,
-    }
-  }
 }
