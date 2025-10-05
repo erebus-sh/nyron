@@ -3,17 +3,21 @@
 // Nyron: Smart version bumping workflow
 // ------------------------------------------------------------
 // Mental Model:
-//   sdk@0.0.1 ---- A ---- B ---- C ---- sdk@0.0.2
-//                  └──────┬──────┘
-//                    changelog
+//   sdk@0.0.1 ---- A ---- B ---- C ---- [changelog commit] ---- sdk@0.0.2
+//                  └──────┬──────┘              │
+//                    changelog                  ▼
+//                                         included in tag
 //
-// Before bumping from sdk@0.0.1 → sdk@0.0.2, we generate a 
-// changelog from commits A, B, C that happened since the last tag.
-// This ensures the changelog exists before we create the new tag.
+// When bumping from sdk@0.0.1 → sdk@0.0.2:
+// 1. Generate changelog from commits A, B, C (since sdk@0.0.1)
+// 2. Commit the changelog 
+// 3. Create tag sdk@0.0.2 (includes the changelog commit)
+// This ensures the changelog commit is part of the tagged release.
 // ------------------------------------------------------------
-// Phase 0: Generate changelog from commits since last tag
-// Phase 1: Validate everything (dry run)
-// Phase 2: Execute all changes atomically (tag + package.json)
+// Phase 1: Validate and compute new version
+// Phase 2: Generate changelog for NEW version (lastTag → HEAD)
+// Phase 3: Commit the changelog
+// Phase 4: Create tag, push, and update package.json
 // ------------------------------------------------------------
 
 import { loadConfig } from "../core/loadConfig"
@@ -24,7 +28,6 @@ import { ask } from "../core/prompts"
 import { bumpVersion } from "../core/semver"
 import { validatePackage } from "../utils/validatePackage"
 import { writePackageVersion } from "../package/write"
-import { generateChangelog } from "../utils/generateChangelog"
 
 // ------------------------------------------------------------
 // Phase 1: Validate (dry run)
@@ -78,7 +81,66 @@ const validate = async (options: BumpOptions) => {
 }
 
 // ------------------------------------------------------------
-// Phase 2: Execute (apply changes)
+// Phase 2: Generate changelog for the NEW version
+// ------------------------------------------------------------
+const generateChangelogForNewVersion = async (data: Awaited<ReturnType<typeof validate>>) => {
+  const { tagPrefix, lastTag, commitsSince, newVersion } = data
+  
+  console.log(`\n📝 Generating changelog for version ${newVersion}...`)
+  
+  if (commitsSince.length === 0) {
+    console.log(`⚠️  No commits to include in changelog`)
+    return { generated: false }
+  }
+  
+  // Import the changelog generation utilities
+  const { parseCommits, organizeForChangelog } = await import("../git/commits-parser")
+  const { writeChangelog } = await import("../changelog/write")
+  
+  // Parse commits into structured groups
+  const parsedCommits = parseCommits(commitsSince)
+  const { features, fixes, chores } = organizeForChangelog(parsedCommits)
+  
+  // Write changelog for the NEW version
+  await writeChangelog({
+    prefix: tagPrefix,
+    version: newVersion,
+    features,
+    fixes,
+    chores,
+  })
+  
+  console.log(`✓ Changelog generated: ${commitsSince.length} commits (${lastTag} → HEAD)`)
+  return { generated: true, commitCount: commitsSince.length }
+}
+
+// ------------------------------------------------------------
+// Phase 3: Commit the changelog
+// ------------------------------------------------------------
+const commitChangelog = async (data: Awaited<ReturnType<typeof validate>>) => {
+  const { tagPrefix, newVersion } = data
+  const { simpleGit } = await import("simple-git")
+  const git = simpleGit()
+  
+  console.log(`📝 Committing changelog...`)
+  
+  // Stage the changelog directory
+  await git.add(`changelogs/${tagPrefix}*`)
+  
+  // Check if there are changes to commit
+  const status = await git.status()
+  if (status.files.length === 0) {
+    console.log(`⚠️  No changelog changes to commit`)
+    return
+  }
+  
+  // Commit the changelog
+  await git.commit(`chore: update changelog for ${tagPrefix}${newVersion}`)
+  console.log(`✓ Changelog committed`)
+}
+
+// ------------------------------------------------------------
+// Phase 4: Execute (create tag and push)
 // ------------------------------------------------------------
 const execute = async (data: Awaited<ReturnType<typeof validate>>) => {
   const { tagPrefix, newVersion, fullTag, packagePath } = data
@@ -102,15 +164,12 @@ const execute = async (data: Awaited<ReturnType<typeof validate>>) => {
 // ------------------------------------------------------------
 export const bump = async (options: BumpOptions) => {
   try {
-    // Phase 0: Generate changelog from commits since last tag
-    console.log(`\n📝 Generating changelog from recent commits...`)
+    // Phase 1: Validate and compute new version
+    const data = await validate(options)
+    
+    // Phase 2: Generate changelog for the NEW version (from lastTag to HEAD)
     try {
-      const result = await generateChangelog(options.prefix)
-      if (result.generated) {
-        console.log(`✓ Changelog generated: ${result.commitCount} commits (${result.from} → ${result.to})`)
-      } else {
-        console.log(`⚠️  ${result.reason}`)
-      }
+      await generateChangelogForNewVersion(data)
     } catch (error) {
       console.log(`⚠️  Could not generate changelog: ${error instanceof Error ? error.message : String(error)}`)
       const confirm = await ask(`Continue with bump anyway? [y/N] `)
@@ -119,10 +178,15 @@ export const bump = async (options: BumpOptions) => {
       }
     }
     
-    // Phase 1: Validate
-    const data = await validate(options)
+    // Phase 3: Commit the changelog
+    try {
+      await commitChangelog(data)
+    } catch (error) {
+      console.log(`⚠️  Could not commit changelog: ${error instanceof Error ? error.message : String(error)}`)
+      // Continue anyway - changelog was written even if not committed
+    }
     
-    // Phase 2: Execute
+    // Phase 4: Create tag, push, and update package.json
     await execute(data)
   } catch (error) {
     console.error(`\n${error instanceof Error ? error.message : String(error)}`)
