@@ -24,6 +24,6 @@ yarn-error.log*
 # vercel
 .vercel
 
-*env*
+.env*
 
 tmp/*

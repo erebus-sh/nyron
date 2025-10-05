@@ -1,6 +1,7 @@
 import { existsSync, writeFileSync } from "fs"
 import path from "path"
 import type { InitOptions } from "./types"
+import { detectEnvironmentAndOfferInstall } from "../utils/detectEnvironment"
 
 export async function init(options: InitOptions) {
   const filename = options.json ? "nyron.config.json" : "nyron.config.ts"
@@ -10,6 +11,9 @@ export async function init(options: InitOptions) {
     console.log(`⚠️ ${filename} already exists. Use --force to overwrite.`)
     return
   }
+
+  // Detect environment and offer to install @nyron/cli
+  await detectEnvironmentAndOfferInstall()
 
   const sample = options.json
     ? JSON.stringify(
