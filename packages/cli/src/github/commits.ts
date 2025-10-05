@@ -3,9 +3,9 @@
 // a all "feat:" prefixed commits -> Features
 // etc...
 
-import type { CommitDiff } from "./types"
+import type { CommitDiff } from "../git/types"
 import { Octokit } from "octokit"
-import { parseRepo } from "../github/repo-parser"
+import { parseRepo } from "./repo-parser"
 
 const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] })
 

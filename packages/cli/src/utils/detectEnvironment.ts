@@ -39,11 +39,12 @@ function detectPackageManager(cwd: string): PackageManagerInfo | null {
 async function runInstallCommand(pm: PackageManagerInfo, cwd: string): Promise<boolean> {
   return new Promise((resolve) => {
     const command = pm.installCommand.join(" ")
-    console.log(`\n⏳ Running: ${command}...\n`)
+    console.log(`\n⏳ Installing @nyron/cli...\n`)
 
     const proc = exec(command, { cwd }, (error, stdout, stderr) => {
       if (error) {
-        console.log(`\n⚠️  Install failed: ${error.message}. You can install @nyron/cli manually.`)
+        console.log(`\n⚠️  Installation failed: ${error.message}`)
+        console.log(`   → You can install @nyron/cli manually`)
         resolve(false)
         return
       }
@@ -56,12 +57,13 @@ async function runInstallCommand(pm: PackageManagerInfo, cwd: string): Promise<b
         process.stdout.write(stdout)
       }
 
-      console.log(`\n✅ Successfully installed @nyron/cli`)
+      console.log(`\n✅ @nyron/cli installed successfully`)
       resolve(true)
     })
 
     proc.on("error", (err: Error) => {
-      console.log(`\n⚠️  Install failed: ${err.message}. You can install @nyron/cli manually.`)
+      console.log(`\n⚠️  Installation failed: ${err.message}`)
+      console.log(`   → You can install @nyron/cli manually`)
       resolve(false)
     })
   })
@@ -106,7 +108,7 @@ function ensureDevDependency(cwd: string): void {
  */
 async function promptForInstall(pm: PackageManagerInfo): Promise<boolean> {
   const answer = await ask(
-    `\n🔍 Detected ${pm.name.toUpperCase()}. Would you like to install @nyron/cli locally for full type safety? (y/n): `
+    `\n🔍 Detected ${pm.name}. Install @nyron/cli locally for full type safety? (y/n): `
   )
   
   return answer.toLowerCase() === "y" || answer.toLowerCase() === "yes"
@@ -132,12 +134,13 @@ export async function detectEnvironmentAndOfferInstall(): Promise<void> {
         ensureDevDependency(cwd)
       }
     } else {
-      console.log("\n⏭️  Skipping installation. You can install @nyron/cli manually later for type safety.")
+      console.log("\n⏭️  Skipping installation")
+      console.log("   → You can install @nyron/cli manually later for type safety")
     }
   } else {
     // No package manager detected
-    console.log("\n⚠️  Couldn't detect a package manager or lock file.")
-    console.log("   You can still use Nyron, but for full type safety, install @nyron/cli manually:")
+    console.log("\n⚠️  No package manager detected")
+    console.log("   → For full type safety, install @nyron/cli manually:")
     console.log("   • bun add -D @nyron/cli")
     console.log("   • npm install --save-dev @nyron/cli")
     console.log("   • pnpm add -D @nyron/cli")

@@ -30,10 +30,10 @@ export async function writeChangelog(options: WriteChangelogOptions) {
     // Check if file already exists and log if overwriting
     const exists = await fileExists(changelogPath)
     if (exists) {
-        console.log(`⚠️  Overwriting existing changelog: ${changelogPath}`)
+        console.log(`⚠️  Overwriting existing changelog at ${changelogPath}`)
     }
     
     // Write the file (will overwrite if exists)
     await writeFile(changelogPath, content)
-    console.log(`✅ Changelog written to: ${changelogPath}`)
+    console.log(`✅ Changelog written: ${changelogPath}`)
 }

@@ -30,7 +30,7 @@ export async function validatePackage(basePath: string): Promise<PackageValidati
             return {
                 valid: false,
                 path: pkgPath,
-                error: `Missing or invalid "version" field in package.json`,
+                error: `Missing or invalid "version" field in package.json at ${pkgPath}`,
             }
         }
 
@@ -44,13 +44,13 @@ export async function validatePackage(basePath: string): Promise<PackageValidati
             return {
                 valid: false,
                 path: pkgPath,
-                error: `Failed to validate package.json: ${err.message}`,
+                error: `Cannot read package.json: ${err.message}`,
             }
         }
         return {
             valid: false,
             path: pkgPath,
-            error: `Failed to validate package.json: ${err}`,
+            error: `Cannot read package.json: ${String(err)}`,
         }
     }
 }

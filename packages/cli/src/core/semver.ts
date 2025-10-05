@@ -35,14 +35,14 @@ export function bumpVersion(
     // For prerelease, bump the prerelease number or start a new beta prerelease
     const result = semver.inc(version, type, "beta");
     if (!result) {
-      throw new Error(`Failed to bump prerelease version: ${version}`);
+      throw new Error(`Invalid version format for prerelease bump: ${version}\n   → Ensure version follows semantic versioning (e.g., 1.0.0)`);
     }
     return result;
   } else {
     // For major, minor, patch, bump normally
     const result = semver.inc(version, type);
     if (!result) {
-      throw new Error(`Failed to bump ${type} version: ${version}`);
+      throw new Error(`Invalid version format for ${type} bump: ${version}\n   → Ensure version follows semantic versioning (e.g., 1.0.0)`);
     }
     return result;
   }

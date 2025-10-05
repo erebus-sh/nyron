@@ -27,7 +27,7 @@
 import { loadConfig } from "../core/loadConfig"
 import { type BumpOptions } from "./types"
 import { createTag, getLatestTag, pushTag, tagExists } from "../git/tags"
-import { getCommitsSince } from "../git/commits"
+import { getCommitsSince } from "../github/commits"
 import { bumpVersion } from "../core/semver"
 import { validatePackage } from "../utils/validatePackage"
 import { writePackageVersion } from "../package/write"
@@ -49,21 +49,21 @@ const validate = async (options: BumpOptions) => {
     ([, v]) => v.tagPrefix === options.prefix
   )
   if (!project) {
-    throw new Error(`❌ No project found with prefix "${options.prefix}"`)
+    throw new Error(`❌ No project found with prefix "${options.prefix}"\n   → Check your nyron.config.ts for available prefixes`)
   }
   const { tagPrefix, path } = project[1]
-  console.log(`✓ Found project at: ${path}`)
+  console.log(`✅ Found project at: ${path}`)
 
   // 2) Check last tag and commits
   const lastTag = await getLatestTag(tagPrefix)
   if (!lastTag) {
-    throw new Error(`❌ No previous tag found for ${tagPrefix}`)
+    throw new Error(`❌ No previous tag found for ${tagPrefix}\n   → Create an initial tag with: nyron tag -p ${tagPrefix} -v 0.0.1`)
   }
-  console.log(`✓ Latest tag: ${lastTag}`)
+  console.log(`✅ Latest tag: ${lastTag}`)
 
   const commitsSince = await getCommitsSince(lastTag, config.repo)
   if (commitsSince.length === 0) {
-    throw new Error("❌ No new commits since last release")
+    throw new Error(`❌ No new commits since last release\n   → Make some changes and commit them before bumping`)
   }
   
   // Filter out meta commits (version bumps, changelog updates)
@@ -78,17 +78,17 @@ const validate = async (options: BumpOptions) => {
   })
   
   if (realCommits.length === 0) {
-    throw new Error("❌ No real commits to release (only version bump commits found)")
+    throw new Error(`❌ No substantive commits to release\n   → Only version bump and changelog commits found since ${lastTag}\n   → Add feature, fix, or other meaningful commits before bumping`)
   }
   
-  console.log(`✓ Found ${realCommits.length} real commits since ${lastTag} (filtered ${commitsSince.length - realCommits.length} meta commits)`)
+  console.log(`✅ Found ${realCommits.length} commit${realCommits.length === 1 ? '' : 's'} since ${lastTag}${commitsSince.length - realCommits.length > 0 ? ` (filtered ${commitsSince.length - realCommits.length} meta commit${commitsSince.length - realCommits.length === 1 ? '' : 's'})` : ''}`)
 
   // 3) Verify package.json
   const packageJson = await validatePackage(path)
   if (!packageJson.valid) {
-    throw new Error(`❌ ${packageJson.error || "Invalid package.json"}`)
+    throw new Error(`❌ ${packageJson.error || "Invalid package.json"}\n   → Ensure package.json exists at ${path} with a valid version field`)
   }
-  console.log(`✓ Package.json validated`)
+  console.log(`✅ Package validated`)
 
   // 4) Compute new version and check tag doesn't exist
   const version = lastTag.replace(tagPrefix, "")
@@ -96,9 +96,9 @@ const validate = async (options: BumpOptions) => {
   const fullTag = `${tagPrefix}${newVersion}`
   
   if (await tagExists(fullTag)) {
-    throw new Error(`❌ Tag ${fullTag} already exists`)
+    throw new Error(`❌ Tag ${fullTag} already exists\n   → This version has already been released`)
   }
-  console.log(`✓ New version: ${newVersion} (${options.type} bump)`)
+  console.log(`✅ New version: ${newVersion} (${options.type} bump from ${version})`)
 
   return { tagPrefix, path, lastTag, realCommits, newVersion, fullTag, packagePath: packageJson.path }
 }
@@ -109,7 +109,7 @@ const validate = async (options: BumpOptions) => {
 const generateChangelogForNewVersion = async (data: Awaited<ReturnType<typeof validate>>) => {
   const { tagPrefix, realCommits, newVersion } = data
   
-  console.log(`\n📝 Generating changelog for version ${newVersion}...`)
+  console.log(`\n📝 Generating changelog for ${newVersion}...`)
   
   // Import the changelog generation utilities
   
@@ -126,7 +126,7 @@ const generateChangelogForNewVersion = async (data: Awaited<ReturnType<typeof va
     chores,
   })
   
-  console.log(`✓ Changelog generated for ${newVersion}: ${realCommits.length} commits`)
+  console.log(`✅ Changelog generated for ${newVersion} (${realCommits.length} commit${realCommits.length === 1 ? '' : 's'})`)
   return { generated: true, commitCount: realCommits.length }
 }
 
@@ -137,7 +137,7 @@ const commitChangelog = async (data: Awaited<ReturnType<typeof validate>>) => {
   const { tagPrefix, newVersion } = data
   const git = simpleGit()
   
-  console.log(`📝 Committing changelog...`)
+  console.log(`\n📝 Committing changelog...`)
   
   // Stage the specific changelog file
   const changelogPath = buildChangelogPath(tagPrefix, newVersion)
@@ -152,7 +152,7 @@ const commitChangelog = async (data: Awaited<ReturnType<typeof validate>>) => {
   
   // Commit the changelog
   await git.commit(`chore: update changelog for ${tagPrefix}${newVersion}`)
-  console.log(`✓ Changelog committed`)
+  console.log(`✅ Changelog committed`)
 }
 
 // ------------------------------------------------------------
@@ -163,7 +163,7 @@ const execute = async (data: Awaited<ReturnType<typeof validate>>) => {
 
   console.log(`\n🚀 Executing version bump...`)
   
-  console.log(`📝 Creating git tag: ${fullTag}`)
+  console.log(`🏷️  Creating git tag: ${fullTag}`)
   await createTag(tagPrefix, newVersion)
   
   console.log(`⬆️  Pushing tag to remote...`)
@@ -172,7 +172,7 @@ const execute = async (data: Awaited<ReturnType<typeof validate>>) => {
   console.log(`📦 Updating package.json version...`)
   writePackageVersion(packagePath, newVersion)
   
-  console.log(`\n🎉 Successfully bumped to version ${newVersion}!`)
+  console.log(`\n🎉 Successfully bumped to ${fullTag}!`)
 }
 
 // ------------------------------------------------------------
@@ -191,13 +191,14 @@ export const bump = async (options: BumpOptions) => {
       await commitChangelog(data)
     } catch (error) {
       console.log(`⚠️  Could not commit changelog: ${error instanceof Error ? error.message : String(error)}`)
+      console.log(`   → Continuing anyway - changelog was written successfully`)
       // Continue anyway - changelog was written even if not committed
     }
     
     // Phase 4: Create tag, push, and update package.json
     await execute(data)
   } catch (error) {
-    console.error(`\n${error instanceof Error ? error.message : String(error)}`)
+    console.error(`\n❌ Bump failed:\n${error instanceof Error ? error.message : String(error)}`)
     process.exit(1)
   }
 }

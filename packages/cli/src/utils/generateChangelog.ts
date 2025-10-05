@@ -2,7 +2,7 @@
 // This is a utility function used by bump.ts before creating a new version
 
 import { getLatestTag, getPreviousTag } from "../git/tags"
-import { getCommitsBetween } from "../git/commits"
+import { getCommitsBetween } from "../github/commits"
 import { parseCommits, organizeForChangelog } from "../git/commits-parser"
 import { parseTag } from "../git/tag-parser"
 import { writeChangelog } from "../changelog/write"
@@ -10,12 +10,12 @@ import { writeChangelog } from "../changelog/write"
 export async function generateChangelog(prefix: string, repo: string) {
   const latest = await getLatestTag(prefix)
   if (!latest) {
-    throw new Error(`No tag found for ${prefix}`)
+    throw new Error(`No tag found for ${prefix}\n   → Create a tag with: nyron tag -p ${prefix} -v 0.0.1`)
   }
   
   const previous = await getPreviousTag(prefix)
   if (!previous) {
-    throw new Error(`No previous tag found for ${prefix}`)
+    throw new Error(`No previous tag found for ${prefix}\n   → Need at least two tags to generate a changelog`)
   }
   
   // Get commits between tags
@@ -30,7 +30,7 @@ export async function generateChangelog(prefix: string, repo: string) {
   // Extract version from latest tag
   const tagParts = parseTag(latest)
   if (!tagParts) {
-    throw new Error(`Could not parse version from tag: ${latest}`)
+    throw new Error(`Could not parse version from tag: ${latest}\n   → Tag format should be ${prefix}X.Y.Z`)
   }
   
   // Organize commits for changelog

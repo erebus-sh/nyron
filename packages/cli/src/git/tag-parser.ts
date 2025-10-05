@@ -26,7 +26,7 @@ export function parseTag(tag: string): TagParts | null {
 
   // Validate with semver — this is bulletproof
   if (!semver.valid(version)) {
-    throw new Error(`Invalid semver in tag: ${tag}`)
+    throw new Error(`Invalid semantic version in tag: ${tag}\n   → Version must follow semver format (e.g., 1.0.0)`)
   }
 
   return { prefix, version }
@@ -44,6 +44,8 @@ export function parseTag(tag: string): TagParts | null {
  * @throws {Error} If the version is not a valid semantic version.
  */
 export function buildTag(prefix: string, version: string): string {
-  if (!semver.valid(version)) throw new Error(`Invalid semver: ${version}`)
+  if (!semver.valid(version)) {
+    throw new Error(`Invalid semantic version: ${version}\n   → Version must follow semver format (e.g., 1.0.0)`)
+  }
   return `${prefix}${version}`
 }

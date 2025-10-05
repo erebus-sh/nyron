@@ -9,7 +9,8 @@ export async function init(options: InitOptions) {
   const filepath = path.resolve(process.cwd(), filename)
 
   if (existsSync(filepath) && !options.force) {
-    console.log(`⚠️ ${filename} already exists. Use --force to overwrite.`)
+    console.log(`⚠️  Configuration already exists: ${filename}`)
+    console.log(`   → Use --force to overwrite`)
     return
   }
 
@@ -35,5 +36,6 @@ export default defineConfig({
 })`
 
   writeFileSync(filepath, sample, "utf-8")
-  console.log(`✅ Created ${filename} at ${filepath}`)
+  console.log(`✅ Created ${filename}`)
+  console.log(`   → Edit the file to configure your projects`)
 }

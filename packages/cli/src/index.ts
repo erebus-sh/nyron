@@ -13,7 +13,7 @@ dotenv.config({
 
 program
   .name("nyron")
-  .description("Nyron CLI — smarter multi-package versioning")
+  .description("Nyron CLI — smart multi-package versioning and changelog management")
   .version("0.3.6")
 
 // -----------------------------
@@ -22,9 +22,9 @@ program
 // Automatically generates changelog before bumping version
 program
   .command("bump")
-  .description("Bump versions intelligently across projects (includes changelog generation)")
-  .requiredOption("-t, --type <type>", "Bump type", BumpType.join(", "))
-  .requiredOption("-x, --prefix <prefix>", "Filter to a specific tag prefix")
+  .description("Bump project version and generate changelog")
+  .requiredOption("-t, --type <type>", `Bump type: ${BumpType.join(", ")}`)
+  .requiredOption("-x, --prefix <prefix>", "Tag prefix from config")
   .action(bump)
 
 // -----------------------------
@@ -32,8 +32,8 @@ program
 // -----------------------------
 program
   .command("diff")
-  .description("Show changed packages since their last tagged release")
-  .option("-f, --prefix <prefix>", "Filter to a specific tag prefix")
+  .description("Show commits since last release for all projects")
+  .option("-f, --prefix <prefix>", "Filter by tag prefix")
   .action(diff)
 
 // -----------------------------
@@ -41,9 +41,9 @@ program
 // -----------------------------
 program
   .command("init")
-  .description("Create a nyron.config.ts file in the current directory")
-  .option("-f, --force", "Overwrite if config already exists")
-  .option("--json", "Generate nyron.config.json instead of .ts")
+  .description("Initialize nyron.config.ts in current directory")
+  .option("-f, --force", "Overwrite existing config")
+  .option("--json", "Generate JSON config instead of TypeScript")
   .action(init)
 
 // -----------------------------
@@ -51,9 +51,9 @@ program
 // -----------------------------
 program
   .command("tag")
-  .description("Create and record a new version tag for a project")
-  .requiredOption("-p, --prefix <prefix>", "Project tag prefix, e.g. @erebus-sh/sdk@")
-  .requiredOption("-v, --version <version>", "Version to tag, e.g. 0.1.0")
+  .description("Create and push a new version tag")
+  .requiredOption("-p, --prefix <prefix>", "Tag prefix (e.g., @my-pkg/sdk@)")
+  .requiredOption("-v, --version <version>", "Semantic version (e.g., 1.0.0)")
   .action(tag)
 
 // -----------------------------

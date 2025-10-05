@@ -28,11 +28,11 @@ async function getFirstCommitHash(): Promise<string> {
     const result = await git.raw(['rev-list', '--max-parents=0', 'HEAD'])
     const hash = result.trim().split('\n')[0] // Get first line if multiple roots
     if (!hash) {
-      throw new Error("No commits found in this repository.")
+      throw new Error("No commits found in repository")
     }
     return hash
   } catch (error) {
-    throw new Error("⚠️ No commits found in this repository. Please make your first commit before tagging.")
+    throw new Error("No commits found in repository\n   → Make your first commit before creating tags")
   }
 }
 
@@ -47,10 +47,10 @@ export async function getPreviousTag(prefix: string): Promise<string | null> {
   // No previous tag found - use first commit as baseline
   try {
     const firstCommit = await getFirstCommitHash()
-    console.log("ℹ️  No previous tag found. Using first commit as baseline.")
+    console.log("ℹ️  No previous tag found, using first commit as baseline")
     return firstCommit
   } catch (error) {
-    console.error(error instanceof Error ? error.message : String(error))
+    console.error(`⚠️  ${error instanceof Error ? error.message : String(error)}`)
     return null
   }
 }
@@ -70,7 +70,7 @@ export async function createTag(prefix: string, version: string) {
   
   // Check if repository has commits before creating tag
   if (!(await hasCommits())) {
-    throw new Error("Cannot create tag: repository has no commits yet. Please make at least one commit first.")
+    throw new Error("Cannot create tag: no commits in repository\n   → Make at least one commit before creating tags")
   }
   
   await git.addTag(tag)
