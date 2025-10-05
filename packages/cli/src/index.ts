@@ -7,7 +7,9 @@ import { init } from "./actions/init"
 import { tag } from "./actions/tag"
 import dotenv from "dotenv"
 
-dotenv.config()
+dotenv.config({
+  quiet: true, // Shhh baby girl...
+})
 
 program
   .name("nyron")
