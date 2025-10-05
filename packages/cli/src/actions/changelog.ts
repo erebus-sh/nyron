@@ -21,6 +21,7 @@ export async function changelog(options: ChangelogOptions) {
   }
   const repo = parseRepo(config.repo)
   const prs = await getPRsBetweenTags(repo, previous, latest)
+  // TODO: Generate changelog based on PRs and check the workflow
   console.log(prs)
   // get PRs between Prev and Current
 }

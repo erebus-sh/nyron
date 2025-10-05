@@ -19,6 +19,7 @@ export async function getPRsBetweenTags(repo: Repo, fromTag: string, toTag: stri
   }
 
   // Step 2: get PRs closed in that range
+  // TODO: Make it configurable (state, sort, direction, per_page)
   const prs = await octokit.paginate(octokit.rest.pulls.list, {
     owner: repo.owner,
     repo: repo.repo,
