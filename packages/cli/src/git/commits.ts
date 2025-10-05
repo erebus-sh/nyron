@@ -3,27 +3,60 @@
 // a all "feat:" prefixed commits -> Features
 // etc...
 
-import { simpleGit } from "simple-git"
 import type { CommitDiff } from "./types"
+import { Octokit } from "octokit"
+import { parseRepo } from "../github/repo-parser"
 
-const git = simpleGit()
+const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] })
 
 export async function getCommitsSince(tag: string, repo: string): Promise<CommitDiff[]> {
-  const { all } = await git.log({ from: tag, to: "HEAD" })
-  return all.map(c => ({
-    hash: c.hash,
-    message: c.message,
-    author: c.author_name,
-    repo: repo,
-  }))
+  const { owner, repo: repoName } = parseRepo(repo)
+  
+  const { data: comparison } = await octokit.rest.repos.compareCommits({
+    owner,
+    repo: repoName,
+    base: tag,
+    head: "HEAD",
+  })
+
+  return await Promise.all(
+    comparison.commits.map(async (commit) => {
+      const commitData: CommitDiff = {
+        hash: commit.sha,
+        message: commit.commit.message,
+        author: commit.commit.author?.email || commit.commit.author?.name || "unknown",
+        repo: repo,
+        githubUser: commit.author?.login,
+        avatar: commit.author?.avatar_url,
+        url: commit.html_url,
+      }
+      return commitData
+    })
+  )
 }
 
 export async function getCommitsBetween(fromTag: string, toTag: string, repo: string): Promise<CommitDiff[]> {
-  const { all } = await git.log({ from: fromTag, to: toTag })
-  return all.map(c => ({
-    hash: c.hash,
-    message: c.message,
-    author: c.author_name,
-    repo: repo,
-  }))
+  const { owner, repo: repoName } = parseRepo(repo)
+  
+  const { data: comparison } = await octokit.rest.repos.compareCommits({
+    owner,
+    repo: repoName,
+    base: fromTag,
+    head: toTag,
+  })
+
+  return await Promise.all(
+    comparison.commits.map(async (commit) => {
+      const commitData: CommitDiff = {
+        hash: commit.sha,
+        message: commit.commit.message,
+        author: commit.commit.author?.email || commit.commit.author?.name || "unknown",
+        repo: repo,
+        githubUser: commit.author?.login,
+        avatar: commit.author?.avatar_url,
+        url: commit.html_url,
+      }
+      return commitData
+    })
+  )
 }

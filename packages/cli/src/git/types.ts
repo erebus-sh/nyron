@@ -3,6 +3,9 @@ export interface CommitDiff {
     message: string
     repo: string
     author: string
+    githubUser?: string
+    avatar?: string
+    url?: string
 }
 
 export interface ParsedCommit {
@@ -13,6 +16,9 @@ export interface ParsedCommit {
     hash: string
     message: string
     raw: string
+    githubUser?: string
+    avatar?: string
+    url?: string
   }
   
   export interface ParsedCommits {

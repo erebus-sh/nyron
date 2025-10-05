@@ -18,7 +18,17 @@ export function parseCommits(commits: CommitDiff[]): ParsedCommits {
       // fallback bucket
       groups["other"] ??= { ["general"]: [] }
       if (!groups["other"]["general"]) groups["other"]["general"] = []
-      groups["other"]["general"].push({ type: "other", message: raw, raw, author: commit.author, hash: commit.hash, repo: commit.repo })
+      groups["other"]["general"].push({ 
+        type: "other", 
+        message: raw, 
+        raw, 
+        author: commit.author, 
+        hash: commit.hash, 
+        repo: commit.repo,
+        githubUser: commit.githubUser,
+        avatar: commit.avatar,
+        url: commit.url
+      })
       continue
     }
 
@@ -30,7 +40,18 @@ export function parseCommits(commits: CommitDiff[]): ParsedCommits {
     const scopeKey = scope ?? "general"
     if (!groups[normalizedType][scopeKey]) groups[normalizedType][scopeKey] = []
 
-    groups[normalizedType][scopeKey].push({ type: normalizedType, scope: scopeKey as string, message: message!, raw, author: commit.author, hash: commit.hash, repo: commit.repo })
+    groups[normalizedType][scopeKey].push({ 
+      type: normalizedType, 
+      scope: scopeKey as string, 
+      message: message!, 
+      raw, 
+      author: commit.author, 
+      hash: commit.hash, 
+      repo: commit.repo,
+      githubUser: commit.githubUser,
+      avatar: commit.avatar,
+      url: commit.url
+    })
   }
   return groups
 }
@@ -84,7 +105,12 @@ export function organizeForChangelog(parsedCommits: ParsedCommits): OrganizedCom
     for (const [scope, commits] of Object.entries(parsedCommits["Features"])) {
       for (const commit of commits) {
         const scopeLabel = scope !== "general" ? `**${scope}**: ` : ""
-        features.push(`${scopeLabel}${commit.message} (by [${commit.author}](https://github.com/${commit.author})) |[${commit.hash}](https://github.com/${commit.repo}/commit/${commit.hash})|`)
+        const authorLink = commit.githubUser 
+          ? `[@${commit.githubUser}](https://github.com/${commit.githubUser})`
+          : commit.author
+        const commitLink = commit.url || `https://github.com/${commit.repo}/commit/${commit.hash}`
+        const shortHash = commit.hash.substring(0, 7)
+        features.push(`${scopeLabel}${commit.message} (${authorLink}) [[${shortHash}](${commitLink})]`)
       }
     }
   }
@@ -94,7 +120,12 @@ export function organizeForChangelog(parsedCommits: ParsedCommits): OrganizedCom
     for (const [scope, commits] of Object.entries(parsedCommits["Bug Fixes"])) {
       for (const commit of commits) {
         const scopeLabel = scope !== "general" ? `**${scope}**: ` : ""
-        fixes.push(`${scopeLabel}${commit.message} (by [${commit.author}](https://github.com/${commit.author}))`)
+        const authorLink = commit.githubUser 
+          ? `[@${commit.githubUser}](https://github.com/${commit.githubUser})`
+          : commit.author
+        const commitLink = commit.url || `https://github.com/${commit.repo}/commit/${commit.hash}`
+        const shortHash = commit.hash.substring(0, 7)
+        fixes.push(`${scopeLabel}${commit.message} (${authorLink}) [[${shortHash}](${commitLink})]`)
       }
     }
   }
@@ -106,7 +137,12 @@ export function organizeForChangelog(parsedCommits: ParsedCommits): OrganizedCom
       for (const [scope, commits] of Object.entries(parsedCommits[type])) {
         for (const commit of commits) {
           const scopeLabel = scope !== "general" ? `**${scope}**: ` : ""
-          chores.push(`${scopeLabel}${commit.message} (by [${commit.author}](https://github.com/${commit.author})) |[${commit.hash}](https://github.com/${commit.repo}/commit/${commit.hash})|`)
+          const authorLink = commit.githubUser 
+            ? `[@${commit.githubUser}](https://github.com/${commit.githubUser})`
+            : commit.author
+          const commitLink = commit.url || `https://github.com/${commit.repo}/commit/${commit.hash}`
+          const shortHash = commit.hash.substring(0, 7)
+          chores.push(`${scopeLabel}${commit.message} (${authorLink}) [[${shortHash}](${commitLink})]`)
         }
       }
     }
