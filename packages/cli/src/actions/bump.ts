@@ -3,19 +3,23 @@
 // Nyron: Smart version bumping workflow
 // ------------------------------------------------------------
 // Mental Model:
-//   sdk@0.0.1 ---- A ---- B ---- C ---- [changelog commit] ---- sdk@0.0.2
-//                  └──────┬──────┘              │
-//                    changelog                  ▼
-//                                         included in tag
+//   sdk@0.0.1 ---- A ---- B ---- C ---- [changelog] ---- sdk@0.0.2 ---- D ---- E
+//                  └──────┬──────┘                                └─────┬─────┘
+//                  changelog for 0.0.2                        changelog for 0.0.3
 //
-// When bumping from sdk@0.0.1 → sdk@0.0.2:
-// 1. Generate changelog from commits A, B, C (since sdk@0.0.1)
-// 2. Commit the changelog 
-// 3. Create tag sdk@0.0.2 (includes the changelog commit)
-// This ensures the changelog commit is part of the tagged release.
+// When bumping from sdk@0.0.2 → sdk@0.0.3:
+// 1. Get commits from sdk@0.0.2 to HEAD (includes D, E, and [changelog] commit)
+// 2. Filter out meta commits (version bumps, changelog updates)
+// 3. Generate changelog for 0.0.3 using only D, E (real work)
+// 4. Commit the changelog
+// 5. Create tag sdk@0.0.3 (includes the changelog commit)
+//
+// Key insight: We filter out "chore: bump" and "chore: update changelog" 
+// commits so they don't pollute the changelogs. Users only want to see
+// real features, fixes, and meaningful chores.
 // ------------------------------------------------------------
 // Phase 1: Validate and compute new version
-// Phase 2: Generate changelog for NEW version (lastTag → HEAD)
+// Phase 2: Generate changelog for NEW version (lastTag → HEAD, filtered)
 // Phase 3: Commit the changelog
 // Phase 4: Create tag, push, and update package.json
 // ------------------------------------------------------------
@@ -88,17 +92,31 @@ const generateChangelogForNewVersion = async (data: Awaited<ReturnType<typeof va
   
   console.log(`\n📝 Generating changelog for version ${newVersion}...`)
   
-  if (commitsSince.length === 0) {
-    console.log(`⚠️  No commits to include in changelog`)
+  // Filter out version bump and changelog commits (meta commits)
+  // These are commits created by the bump process itself and shouldn't appear in changelogs
+  const filteredCommits = commitsSince.filter(commit => {
+    const msg = commit.message.toLowerCase()
+    return !(
+      msg.includes('bump') && msg.includes('version') ||
+      msg.includes('update changelog') ||
+      msg.startsWith('chore: bump') ||
+      msg.startsWith('chore: update changelog')
+    )
+  })
+  
+  if (filteredCommits.length === 0) {
+    console.log(`⚠️  No commits to include in changelog (all commits filtered out as meta commits)`)
     return { generated: false }
   }
+  
+  console.log(`✓ Found ${filteredCommits.length} commits (filtered ${commitsSince.length - filteredCommits.length} meta commits)`)
   
   // Import the changelog generation utilities
   const { parseCommits, organizeForChangelog } = await import("../git/commits-parser")
   const { writeChangelog } = await import("../changelog/write")
   
   // Parse commits into structured groups
-  const parsedCommits = parseCommits(commitsSince)
+  const parsedCommits = parseCommits(filteredCommits)
   const { features, fixes, chores } = organizeForChangelog(parsedCommits)
   
   // Write changelog for the NEW version
@@ -110,8 +128,8 @@ const generateChangelogForNewVersion = async (data: Awaited<ReturnType<typeof va
     chores,
   })
   
-  console.log(`✓ Changelog generated: ${commitsSince.length} commits (${lastTag} → HEAD)`)
-  return { generated: true, commitCount: commitsSince.length }
+  console.log(`✓ Changelog generated for ${newVersion}: ${filteredCommits.length} commits (${lastTag} → HEAD)`)
+  return { generated: true, commitCount: filteredCommits.length }
 }
 
 // ------------------------------------------------------------
