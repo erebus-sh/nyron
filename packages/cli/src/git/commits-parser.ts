@@ -1,15 +1,5 @@
-import type { CommitDiff } from "./types"
+import type { CommitDiff, ParsedCommits } from "./types"
 
-export interface ParsedCommit {
-  type: string
-  scope?: string
-  message: string
-  raw: string
-}
-
-export interface ParsedCommits {
-  [type: string]: Record<string | "general", ParsedCommit[]>
-}
 
 /**
  * Parse commits into structured groups:
@@ -28,7 +18,7 @@ export function parseCommits(commits: CommitDiff[]): ParsedCommits {
       // fallback bucket
       groups["other"] ??= { ["general"]: [] }
       if (!groups["other"]["general"]) groups["other"]["general"] = []
-      groups["other"]["general"].push({ type: "other", message: raw, raw })
+      groups["other"]["general"].push({ type: "other", message: raw, raw, author: commit.author, hash: commit.hash, repo: commit.repo })
       continue
     }
 
@@ -40,7 +30,7 @@ export function parseCommits(commits: CommitDiff[]): ParsedCommits {
     const scopeKey = scope ?? "general"
     if (!groups[normalizedType][scopeKey]) groups[normalizedType][scopeKey] = []
 
-    groups[normalizedType][scopeKey].push({ type: normalizedType, scope: scopeKey as string, message: message!, raw })
+    groups[normalizedType][scopeKey].push({ type: normalizedType, scope: scopeKey as string, message: message!, raw, author: commit.author, hash: commit.hash, repo: commit.repo })
   }
   return groups
 }
@@ -94,7 +84,7 @@ export function organizeForChangelog(parsedCommits: ParsedCommits): OrganizedCom
     for (const [scope, commits] of Object.entries(parsedCommits["Features"])) {
       for (const commit of commits) {
         const scopeLabel = scope !== "general" ? `**${scope}**: ` : ""
-        features.push(`${scopeLabel}${commit.message}`)
+        features.push(`${scopeLabel}${commit.message} (by [${commit.author}](https://github.com/${commit.author})) |[${commit.hash}](https://github.com/${commit.repo}/commit/${commit.hash})|`)
       }
     }
   }
@@ -104,7 +94,7 @@ export function organizeForChangelog(parsedCommits: ParsedCommits): OrganizedCom
     for (const [scope, commits] of Object.entries(parsedCommits["Bug Fixes"])) {
       for (const commit of commits) {
         const scopeLabel = scope !== "general" ? `**${scope}**: ` : ""
-        fixes.push(`${scopeLabel}${commit.message}`)
+        fixes.push(`${scopeLabel}${commit.message} (by [${commit.author}](https://github.com/${commit.author}))`)
       }
     }
   }
@@ -116,7 +106,7 @@ export function organizeForChangelog(parsedCommits: ParsedCommits): OrganizedCom
       for (const [scope, commits] of Object.entries(parsedCommits[type])) {
         for (const commit of commits) {
           const scopeLabel = scope !== "general" ? `**${scope}**: ` : ""
-          chores.push(`${scopeLabel}${commit.message}`)
+          chores.push(`${scopeLabel}${commit.message} (by [${commit.author}](https://github.com/${commit.author})) |[${commit.hash}](https://github.com/${commit.repo}/commit/${commit.hash})|`)
         }
       }
     }

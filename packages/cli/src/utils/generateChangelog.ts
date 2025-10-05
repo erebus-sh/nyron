@@ -7,7 +7,7 @@ import { parseCommits, organizeForChangelog } from "../git/commits-parser"
 import { parseTag } from "../git/tag-parser"
 import { writeChangelog } from "../changelog/write"
 
-export async function generateChangelog(prefix: string) {
+export async function generateChangelog(prefix: string, repo: string) {
   const latest = await getLatestTag(prefix)
   if (!latest) {
     throw new Error(`No tag found for ${prefix}`)
@@ -19,7 +19,7 @@ export async function generateChangelog(prefix: string) {
   }
   
   // Get commits between tags
-  const commits = await getCommitsBetween(previous, latest)
+  const commits = await getCommitsBetween(previous, latest, repo)
   if (commits.length === 0) {
     return { generated: false, reason: "No commits found between tags" }
   }

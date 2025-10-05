@@ -17,7 +17,7 @@ export async function diff(options: DiffOptions) {
       continue
     }
 
-    const commits = await getCommitsSince(latest)
+    const commits = await getCommitsSince(latest, config.repo)
     console.log(`\n📦 ${name} (${latest})`)
     commits.length
       ? commits.forEach(c => console.log("  -", c))

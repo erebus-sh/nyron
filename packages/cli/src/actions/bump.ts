@@ -61,7 +61,7 @@ const validate = async (options: BumpOptions) => {
   }
   console.log(`✓ Latest tag: ${lastTag}`)
 
-  const commitsSince = await getCommitsSince(lastTag)
+  const commitsSince = await getCommitsSince(lastTag, config.repo)
   if (commitsSince.length === 0) {
     throw new Error("❌ No new commits since last release")
   }
