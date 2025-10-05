@@ -6,6 +6,7 @@ import { diff } from "./actions/diff"
 import { init } from "./actions/init"
 import { tag } from "./actions/tag"
 import dotenv from "dotenv"
+import { BumpType } from "./core/types"
 
 dotenv.config({
   quiet: true, // Shhh baby girl...
@@ -22,10 +23,7 @@ program
 program
   .command("bump")
   .description("Bump versions intelligently across projects")
-  .option("-m, --major", "Bump major version")
-  .option("-i, --minor", "Bump minor version")
-  .option("-p, --patch", "Bump patch version")
-  .option("-r, --prerelease", "Bump prerelease version")
+  .option("-t, --type <type>", "Bump type", [...Object.values(BumpType)].join(", "))
   .requiredOption("-x, --prefix <prefix>", "Filter to a specific tag prefix")
   .action(bump)
 

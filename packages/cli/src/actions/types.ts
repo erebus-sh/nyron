@@ -1,11 +1,9 @@
 import type { OptionValues } from "commander"
+import type { BumpType } from "../core/types"
 
 export interface BumpOptions extends OptionValues {
-    major?: boolean
-    minor?: boolean
-    patch?: boolean
-    prerelease?: boolean
-    prefix?: string
+    type: BumpType
+    prefix: string
 }
   
 export interface DiffOptions extends OptionValues {

@@ -13,24 +13,14 @@ import { getCommitsSince } from "../git/commits"
 import { fileExists } from "../core/files"
 import { ask } from "../core/prompts"
 import { bumpVersion } from "../core/semver"
-import type { BumpType } from "../core/types"
 import { validatePackage } from "../utils/validatePackage"
 import { writePackageVersion } from "../package/write"
-
-const getType = (options: BumpOptions): BumpType => {
-  if (options.major) return "major"
-  if (options.minor) return "minor"
-  if (options.patch) return "patch"
-  if (options.prerelease) return "prerelease"
-  return "patch"
-}
 
 // ------------------------------------------------------------
 // Phase 1: Validate (dry run)
 // ------------------------------------------------------------
 const validate = async (options: BumpOptions) => {
   const config = await loadConfig()
-  const type = getType(options)
 
   console.log(`🔍 Validating bump for prefix: ${options.prefix}`)
 
@@ -66,15 +56,15 @@ const validate = async (options: BumpOptions) => {
 
   // 4) Compute new version and check tag doesn't exist
   const version = lastTag.replace(tagPrefix, "")
-  const newVersion = bumpVersion(version, type)
+  const newVersion = bumpVersion(version, options.type)
   const fullTag = `${tagPrefix}${newVersion}`
   
   if (await tagExists(fullTag)) {
     throw new Error(`❌ Tag ${fullTag} already exists`)
   }
-  console.log(`✓ New version: ${newVersion} (${type} bump)`)
+  console.log(`✓ New version: ${newVersion} (${options.type} bump)`)
 
-  // 5) Check changelog (with user prompt)
+  // 5) Check changelog (with user pro  mpt)
   const safeTag = lastTag.replace(/[@/]/g, "_")
   const changelogPath = `.nyron/${path}/CHANGELOG-${safeTag}.md`
   if (!(await fileExists(changelogPath))) {
