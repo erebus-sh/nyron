@@ -12,7 +12,7 @@ interface PackageManagerInfo {
 }
 
 const PACKAGE_MANAGERS: PackageManagerInfo[] = [
-  { name: "bun", lockFile: "bun.lockb", installCommand: ["bun", "add", "-D", "@nyron/cli"] },
+  { name: "bun", lockFile: "bun.lock", installCommand: ["bun", "add", "-D", "@nyron/cli"] },
   { name: "npm", lockFile: "package-lock.json", installCommand: ["npm", "install", "--save-dev", "@nyron/cli"] },
   { name: "pnpm", lockFile: "pnpm-lock.yaml", installCommand: ["pnpm", "add", "-D", "@nyron/cli"] },
   { name: "yarn", lockFile: "yarn.lock", installCommand: ["yarn", "add", "-D", "@nyron/cli"] },
