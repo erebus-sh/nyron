@@ -70,3 +70,57 @@ function normalizeType(type: string): string {
       return "Other"
   }
 }
+
+export interface OrganizedCommits {
+  features: string[]
+  fixes: string[]
+  chores: string[]
+}
+
+/**
+ * Organize parsed commits into changelog-friendly categories.
+ * Converts commits into formatted strings with optional scope labels.
+ * 
+ * @param parsedCommits - The result from parseCommits()
+ * @returns An object with features, fixes, and chores arrays
+ */
+export function organizeForChangelog(parsedCommits: ParsedCommits): OrganizedCommits {
+  const features: string[] = []
+  const fixes: string[] = []
+  const chores: string[] = []
+  
+  // Process Features
+  if (parsedCommits["Features"]) {
+    for (const [scope, commits] of Object.entries(parsedCommits["Features"])) {
+      for (const commit of commits) {
+        const scopeLabel = scope !== "general" ? `**${scope}**: ` : ""
+        features.push(`${scopeLabel}${commit.message}`)
+      }
+    }
+  }
+  
+  // Process Bug Fixes
+  if (parsedCommits["Bug Fixes"]) {
+    for (const [scope, commits] of Object.entries(parsedCommits["Bug Fixes"])) {
+      for (const commit of commits) {
+        const scopeLabel = scope !== "general" ? `**${scope}**: ` : ""
+        fixes.push(`${scopeLabel}${commit.message}`)
+      }
+    }
+  }
+  
+  // Process Chores and other types
+  const choreTypes = ["Chores", "Refactors", "Performance", "Docs", "Tests", "Style", "Other", "other"]
+  for (const type of choreTypes) {
+    if (parsedCommits[type]) {
+      for (const [scope, commits] of Object.entries(parsedCommits[type])) {
+        for (const commit of commits) {
+          const scopeLabel = scope !== "general" ? `**${scope}**: ` : ""
+          chores.push(`${scopeLabel}${commit.message}`)
+        }
+      }
+    }
+  }
+  
+  return { features, fixes, chores }
+}

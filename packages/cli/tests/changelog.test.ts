@@ -1,0 +1,253 @@
+import { describe, it, expect, mock, beforeEach, afterEach } from "bun:test"
+import { changelog } from "../src/actions/changelog"
+
+// Mock all dependencies
+const mockGetLatestTag = mock(() => Promise.resolve("cli-v@1.2.0"))
+const mockGetPreviousTag = mock(() => Promise.resolve("cli-v@1.1.0"))
+const mockGetCommitsBetween = mock(() => Promise.resolve([
+  { hash: "abc123", message: "feat: add new feature", author: "John Doe" },
+  { hash: "def456", message: "fix: resolve bug", author: "Jane Doe" },
+]))
+const mockWriteChangelog = mock(() => Promise.resolve())
+
+// Mock modules
+mock.module("../src/git/tags", () => ({
+  getLatestTag: mockGetLatestTag,
+  getPreviousTag: mockGetPreviousTag,
+}))
+
+mock.module("../src/git/commits", () => ({
+  getCommitsBetween: mockGetCommitsBetween,
+}))
+
+mock.module("../src/changelog/write", () => ({
+  writeChangelog: mockWriteChangelog,
+}))
+
+describe("changelog", () => {
+  // Capture console output
+  let consoleOutput: string[] = []
+  const originalConsoleLog = console.log
+
+  beforeEach(() => {
+    consoleOutput = []
+    console.log = (...args: any[]) => {
+      consoleOutput.push(args.join(" "))
+    }
+    // Reset all mocks
+    mockGetLatestTag.mockClear()
+    mockGetPreviousTag.mockClear()
+    mockGetCommitsBetween.mockClear()
+    mockWriteChangelog.mockClear()
+  })
+
+  afterEach(() => {
+    console.log = originalConsoleLog
+  })
+
+  it("should generate changelog successfully with features and fixes", async () => {
+    mockGetLatestTag.mockResolvedValue("cli-v@1.2.0")
+    mockGetPreviousTag.mockResolvedValue("cli-v@1.1.0")
+    mockGetCommitsBetween.mockResolvedValue([
+      { hash: "1", message: "feat(ui): add button", author: "A" },
+      { hash: "2", message: "fix(api): fix endpoint", author: "B" },
+      { hash: "3", message: "chore: update deps", author: "C" },
+    ])
+
+    await changelog({ prefix: "cli-v@" })
+
+    expect(mockGetLatestTag).toHaveBeenCalledWith("cli-v@")
+    expect(mockGetPreviousTag).toHaveBeenCalledWith("cli-v@")
+    expect(mockGetCommitsBetween).toHaveBeenCalledWith("cli-v@1.1.0", "cli-v@1.2.0")
+    expect(mockWriteChangelog).toHaveBeenCalledWith({
+      prefix: "cli-v@",
+      version: "1.2.0",
+      features: ["**ui**: add button"],
+      fixes: ["**api**: fix endpoint"],
+      chores: ["update deps"],
+    })
+    expect(consoleOutput).toContain("🎉 Changelog generated successfully!")
+  })
+
+  it("should handle commits without scopes", async () => {
+    mockGetLatestTag.mockResolvedValue("v@2.0.0")
+    mockGetPreviousTag.mockResolvedValue("v@1.9.0")
+    mockGetCommitsBetween.mockResolvedValue([
+      { hash: "1", message: "feat: add feature", author: "A" },
+      { hash: "2", message: "fix: fix bug", author: "B" },
+    ])
+
+    await changelog({ prefix: "v@" })
+
+    expect(mockWriteChangelog).toHaveBeenCalledWith({
+      prefix: "v@",
+      version: "2.0.0",
+      features: ["add feature"],
+      fixes: ["fix bug"],
+      chores: [],
+    })
+  })
+
+  it("should categorize various commit types correctly", async () => {
+    mockGetLatestTag.mockResolvedValue("app@3.0.0")
+    mockGetPreviousTag.mockResolvedValue("app@2.9.0")
+    mockGetCommitsBetween.mockResolvedValue([
+      { hash: "1", message: "feat: new feature", author: "A" },
+      { hash: "2", message: "fix: bug fix", author: "B" },
+      { hash: "3", message: "docs: update docs", author: "C" },
+      { hash: "4", message: "refactor: cleanup", author: "D" },
+      { hash: "5", message: "perf: optimize", author: "E" },
+      { hash: "6", message: "test: add tests", author: "F" },
+    ])
+
+    await changelog({ prefix: "app@" })
+
+    const call = (mockWriteChangelog.mock.calls as any)[0]?.[0]
+    expect(call).toBeDefined()
+    expect(call.prefix).toBe("app@")
+    expect(call.version).toBe("3.0.0")
+    expect(call.features).toEqual(["new feature"])
+    expect(call.fixes).toEqual(["bug fix"])
+    expect(call.chores.length).toBe(4)
+    expect(call.chores).toContain("update docs")
+    expect(call.chores).toContain("cleanup")
+    expect(call.chores).toContain("optimize")
+    expect(call.chores).toContain("add tests")
+  })
+
+  it("should exit early when no latest tag is found", async () => {
+    mockGetLatestTag.mockResolvedValue(null as any)
+
+    await changelog({ prefix: "v@" })
+
+    expect(mockGetLatestTag).toHaveBeenCalledWith("v@")
+    expect(mockGetPreviousTag).not.toHaveBeenCalled()
+    expect(mockGetCommitsBetween).not.toHaveBeenCalled()
+    expect(mockWriteChangelog).not.toHaveBeenCalled()
+    expect(consoleOutput).toContain("⚠️ No tag found for v@")
+  })
+
+  it("should exit early when no previous tag is found", async () => {
+    mockGetLatestTag.mockResolvedValue("v@1.0.0")
+    mockGetPreviousTag.mockResolvedValue(null as any)
+
+    await changelog({ prefix: "v@" })
+
+    expect(mockGetLatestTag).toHaveBeenCalledWith("v@")
+    expect(mockGetPreviousTag).toHaveBeenCalledWith("v@")
+    expect(mockGetCommitsBetween).not.toHaveBeenCalled()
+    expect(mockWriteChangelog).not.toHaveBeenCalled()
+    expect(consoleOutput).toContain("⚠️ No previous tag found for v@")
+  })
+
+  it("should exit early when no commits found between tags", async () => {
+    mockGetLatestTag.mockResolvedValue("v@1.1.0")
+    mockGetPreviousTag.mockResolvedValue("v@1.0.0")
+    mockGetCommitsBetween.mockResolvedValue([])
+
+    await changelog({ prefix: "v@" })
+
+    expect(mockGetCommitsBetween).toHaveBeenCalledWith("v@1.0.0", "v@1.1.0")
+    expect(mockWriteChangelog).not.toHaveBeenCalled()
+    expect(consoleOutput).toContain("⚠️ No commits found between tags")
+  })
+
+  it("should handle tags with different prefix formats", async () => {
+    mockGetLatestTag.mockResolvedValue("@scope/package@1.5.0")
+    mockGetPreviousTag.mockResolvedValue("@scope/package@1.4.0")
+    mockGetCommitsBetween.mockResolvedValue([
+      { hash: "1", message: "feat: feature", author: "A" },
+    ])
+
+    await changelog({ prefix: "@scope/package@" })
+
+    expect(mockWriteChangelog).toHaveBeenCalledWith({
+      prefix: "@scope/package@",
+      version: "1.5.0",
+      features: ["feature"],
+      fixes: [],
+      chores: [],
+    })
+  })
+
+  it("should handle non-conventional commits", async () => {
+    mockGetLatestTag.mockResolvedValue("v@1.2.0")
+    mockGetPreviousTag.mockResolvedValue("v@1.1.0")
+    mockGetCommitsBetween.mockResolvedValue([
+      { hash: "1", message: "feat: feature", author: "A" },
+      { hash: "2", message: "random commit message", author: "B" },
+      { hash: "3", message: "WIP: work in progress", author: "C" },
+    ])
+
+    await changelog({ prefix: "v@" })
+
+    const call = (mockWriteChangelog.mock.calls as any)[0]?.[0]
+    expect(call).toBeDefined()
+    expect(call.prefix).toBe("v@")
+    expect(call.version).toBe("1.2.0")
+    expect(call.features).toEqual(["feature"])
+    expect(call.fixes).toEqual([])
+    expect(call.chores.length).toBe(2)
+    expect(call.chores).toContain("random commit message")
+    // "WIP: work in progress" gets parsed as a conventional commit type "WIP"
+    expect(call.chores).toContain("work in progress")
+  })
+
+  it("should handle multiple commits with same scope", async () => {
+    mockGetLatestTag.mockResolvedValue("v@2.0.0")
+    mockGetPreviousTag.mockResolvedValue("v@1.9.0")
+    mockGetCommitsBetween.mockResolvedValue([
+      { hash: "1", message: "feat(core): add A", author: "A" },
+      { hash: "2", message: "feat(core): add B", author: "B" },
+      { hash: "3", message: "fix(core): fix C", author: "C" },
+    ])
+
+    await changelog({ prefix: "v@" })
+
+    expect(mockWriteChangelog).toHaveBeenCalledWith({
+      prefix: "v@",
+      version: "2.0.0",
+      features: ["**core**: add A", "**core**: add B"],
+      fixes: ["**core**: fix C"],
+      chores: [],
+    })
+  })
+
+  it("should log progress messages during execution", async () => {
+    mockGetLatestTag.mockResolvedValue("v@1.2.0")
+    mockGetPreviousTag.mockResolvedValue("v@1.1.0")
+    mockGetCommitsBetween.mockResolvedValue([
+      { hash: "1", message: "feat: feature", author: "A" },
+      { hash: "2", message: "fix: fix", author: "B" },
+    ])
+
+    await changelog({ prefix: "v@" })
+
+    expect(consoleOutput).toContain("🔍 Running Nyron changelog...")
+    expect(consoleOutput).toContain("📝 Generating changelog from v@1.1.0 to v@1.2.0")
+    expect(consoleOutput).toContain("📊 Found 2 commits")
+    expect(consoleOutput).toContain("🎉 Changelog generated successfully!")
+  })
+
+  it("should handle empty features and fixes arrays", async () => {
+    mockGetLatestTag.mockResolvedValue("v@1.0.1")
+    mockGetPreviousTag.mockResolvedValue("v@1.0.0")
+    mockGetCommitsBetween.mockResolvedValue([
+      { hash: "1", message: "chore: update deps", author: "A" },
+      { hash: "2", message: "docs: update readme", author: "B" },
+    ])
+
+    await changelog({ prefix: "v@" })
+
+    const call = (mockWriteChangelog.mock.calls as any)[0]?.[0]
+    expect(call).toBeDefined()
+    expect(call.prefix).toBe("v@")
+    expect(call.version).toBe("1.0.1")
+    expect(call.features).toEqual([])
+    expect(call.fixes).toEqual([])
+    expect(call.chores.length).toBe(2)
+    expect(call.chores).toContain("update deps")
+    expect(call.chores).toContain("update readme")
+  })
+})
+
