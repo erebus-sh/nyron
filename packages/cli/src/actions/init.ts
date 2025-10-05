@@ -16,11 +16,11 @@ export async function init(options: InitOptions) {
         {
           projects: {
             "sdk": {
-              tagPrefix: "@erebus-sh/sdk@",
+              tagPrefix: "@my-package/sdk@",
               path: "packages/sdk",
             },
             "service": {
-              tagPrefix: "@erebus-sh/service@",
+              tagPrefix: "@my-package/service@",
               path: "apps/service",
             },
           },
@@ -35,11 +35,11 @@ export async function init(options: InitOptions) {
 export default defineConfig({
   projects: {
     sdk: {
-      tagPrefix: "@erebus-sh/sdk@",
+      tagPrefix: "@my-package/sdk@",
       path: "packages/sdk",
     },
     service: {
-      tagPrefix: "@erebus-sh/service@",
+      tagPrefix: "@my-package/service@",
       path: "apps/service",
     },
   },
