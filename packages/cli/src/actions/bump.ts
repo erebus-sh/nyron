@@ -18,6 +18,8 @@ import { fileExists } from "../core/files"
 import { ask } from "../core/prompts"
 import { bumpVersion } from "../core/semver"
 import type { BumpType } from "../core/types"
+import { validatePackage } from "../utils/validatePackage"
+import { writePackageVersion } from "../package/write"
 
 // Determine bump type from options
 const getType = (options: BumpOptions): BumpType => {
@@ -85,4 +87,13 @@ export const bump = async (options: BumpOptions) => {
   await pushTag(fullTag)
   console.log(`Version bumped to ${newVersion} successfully.`)
 
+  // 6) Bump the package.json version
+  const packageJson = await validatePackage(path)
+  if (!packageJson.valid) {
+    console.error(`Error: ${packageJson.error}`)
+    process.exit(1)
+  }
+  writePackageVersion(packageJson.path, newVersion)
 }
+
+// TODO: we must make this process atomic later, one fail, rollback all
