@@ -32,6 +32,7 @@ program
 // -----------------------------
 program
   .command("changelog")
+  .requiredOption("-x, --prefix <prefix>", "Filter to a specific tag prefix")
   .description("Generate a changelog for the current project")
   .action(changelog)
 

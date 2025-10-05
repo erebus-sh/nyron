@@ -7,11 +7,6 @@ import { parseRepo } from "../github/repo-parser"
 import { getPRsBetweenTags } from "../github/pull-requests"
 
 export async function changelog(options: ChangelogOptions) {
-  if (!options.prefix) {
-    console.log("⚠️  Prefix is required for changelog generation")
-    return
-  }
-  
   console.log("🔍 Running Nyron changelog...")
   const config = await loadConfig()
   const latest = await getLatestTag(options.prefix)
