@@ -19,23 +19,28 @@ export async function getPRsBetweenTags(repo: Repo, fromTag: string, toTag: stri
   }
 
   // Step 2: get PRs closed in that range
-  // TODO: Make it configurable (state, sort, direction, per_page)
-  const prs = await octokit.paginate(octokit.rest.pulls.list, {
-    owner: repo.owner,
-    repo: repo.repo,
-    state: "closed",
-    sort: "updated",
-    direction: "desc",
-    per_page: 100,
-  });
+  try {
+    // TODO: Make it configurable (state, sort, direction, per_page)
+    const prs = await octokit.paginate(octokit.rest.pulls.list, {
+      owner: repo.owner,
+      repo: repo.repo,
+      state: "closed",
+      sort: "updated",
+      direction: "desc",
+      per_page: 100,
+    });
 
-  // Step 3: filter merged PRs in range
-  return prs.filter(pr => {
-    if (!pr.merged_at) return false;
-    // pr.merged_at is string | null, but we already checked for falsy above
-    return (
-      new Date(pr.merged_at) >= new Date(fromDate) &&
-      new Date(pr.merged_at) <= new Date(toDate)
-    );
-  });
+    // Step 3: filter merged PRs in range
+    return prs.filter(pr => {
+      if (!pr.merged_at) return false;
+      // pr.merged_at is string | null, but we already checked for falsy above
+      return (
+        new Date(pr.merged_at) >= new Date(fromDate) &&
+        new Date(pr.merged_at) <= new Date(toDate)
+      );
+    });
+  } catch (error: unknown) {
+    console.error("❌ Please make sure you have the correct permissions to access the repository or that the repository exists.")
+    throw error
+  }
 }
