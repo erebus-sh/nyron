@@ -33,10 +33,18 @@ export function bumpVersion(
 ): string {
   if (type === "prerelease") {
     // For prerelease, bump the prerelease number or start a new beta prerelease
-    return semver.inc(version, type, "beta")!;
+    const result = semver.inc(version, type, "beta");
+    if (!result) {
+      throw new Error(`Failed to bump prerelease version: ${version}`);
+    }
+    return result;
   } else {
     // For major, minor, patch, bump normally
-    return semver.inc(version, type)!;
+    const result = semver.inc(version, type);
+    if (!result) {
+      throw new Error(`Failed to bump ${type} version: ${version}`);
+    }
+    return result;
   }
 }
 
@@ -124,5 +132,7 @@ export function enterBeta(version: string): string {
     if (isBeta(version)) {
         return version
     }
-    return bumpVersion(version, 'prerelease')
+    // For stable versions, bump patch first then add -beta.0
+    const patchBumped = semver.inc(version, 'patch')!
+    return `${patchBumped}-beta.0`
 }

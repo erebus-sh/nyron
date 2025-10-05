@@ -1,0 +1,417 @@
+import { describe, it, expect, mock, beforeEach, spyOn } from "bun:test"
+import { bump } from "../src/actions/bump"
+import type { BumpOptions } from "../src/actions/types"
+
+// Mock console methods
+const mockConsoleLog = spyOn(console, "log").mockImplementation(() => {})
+const mockConsoleError = spyOn(console, "error").mockImplementation(() => {})
+const mockProcessExit = spyOn(process, "exit").mockImplementation(() => {
+  throw new Error("process.exit called")
+})
+
+// Mock dependencies
+const mockLoadConfig = mock(() => Promise.resolve({
+  projects: {
+    sdk: { tagPrefix: "sdk@", path: "packages/sdk" }
+  }
+}))
+
+const mockGetLatestTag = mock(() => Promise.resolve("sdk@0.0.1"))
+const mockGetCommitsSince = mock(() => Promise.resolve([
+  { hash: "abc123", message: "feat: add feature", author: "Dev" },
+  { hash: "def456", message: "fix: bug fix", author: "Dev" }
+]))
+const mockTagExists = mock(() => Promise.resolve(false))
+const mockCreateTag = mock(() => Promise.resolve("sdk@0.0.2"))
+const mockPushTag = mock(() => Promise.resolve())
+
+const mockValidatePackage = mock(() => Promise.resolve({
+  valid: true,
+  path: "packages/sdk/package.json"
+}))
+
+const mockWritePackageVersion = mock(() => {})
+
+const mockWriteChangelog = mock(() => Promise.resolve())
+const mockBuildChangelogPath = mock((prefix: string, version: string) => 
+  `.nyron/${prefix}/CHANGELOG-${prefix.replace(/@/g, "_")}-${version}.md`
+)
+
+const mockSimpleGit = mock(() => ({
+  add: mock(() => Promise.resolve()),
+  status: mock(() => Promise.resolve({ files: [{ path: "changelog.md" }] })),
+  commit: mock(() => Promise.resolve())
+}))
+
+// Mock modules
+mock.module("../src/core/loadConfig", () => ({
+  loadConfig: mockLoadConfig
+}))
+
+mock.module("../src/git/tags", () => ({
+  getLatestTag: mockGetLatestTag,
+  tagExists: mockTagExists,
+  createTag: mockCreateTag,
+  pushTag: mockPushTag
+}))
+
+mock.module("../src/git/commits", () => ({
+  getCommitsSince: mockGetCommitsSince
+}))
+
+mock.module("../src/utils/validatePackage", () => ({
+  validatePackage: mockValidatePackage
+}))
+
+mock.module("../src/package/write", () => ({
+  writePackageVersion: mockWritePackageVersion
+}))
+
+mock.module("../src/changelog/write", () => ({
+  writeChangelog: mockWriteChangelog
+}))
+
+mock.module("../src/changelog/file-parser", () => ({
+  buildChangelogPath: mockBuildChangelogPath
+}))
+
+mock.module("simple-git", () => ({
+  simpleGit: mockSimpleGit
+}))
+
+describe("bump", () => {
+  beforeEach(() => {
+    // Reset all mocks
+    mockLoadConfig.mockClear()
+    mockGetLatestTag.mockClear()
+    mockGetCommitsSince.mockClear()
+    mockTagExists.mockClear()
+    mockCreateTag.mockClear()
+    mockPushTag.mockClear()
+    mockValidatePackage.mockClear()
+    mockWritePackageVersion.mockClear()
+    mockWriteChangelog.mockClear()
+    mockBuildChangelogPath.mockClear()
+    mockSimpleGit.mockClear()
+    mockConsoleLog.mockClear()
+    mockConsoleError.mockClear()
+    mockProcessExit.mockClear()
+
+    // Reset to default implementations
+    mockLoadConfig.mockResolvedValue({
+      projects: {
+        sdk: { tagPrefix: "sdk@", path: "packages/sdk" }
+      }
+    })
+    mockGetLatestTag.mockResolvedValue("sdk@0.0.1")
+    mockGetCommitsSince.mockResolvedValue([
+      { hash: "abc123", message: "feat: add feature", author: "Dev" },
+      { hash: "def456", message: "fix: bug fix", author: "Dev" }
+    ])
+    mockTagExists.mockResolvedValue(false)
+    mockValidatePackage.mockResolvedValue({
+      valid: true,
+      path: "packages/sdk/package.json"
+    })
+  })
+
+  describe("Validation Phase", () => {
+    it("should throw error when project not found", async () => {
+      mockLoadConfig.mockResolvedValue({ projects: {} } as any)
+
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+        expect(true).toBe(false) // Should not reach here
+      } catch (error) {
+        expect(mockProcessExit).toHaveBeenCalled()
+        expect(mockConsoleError).toHaveBeenCalled()
+      }
+    })
+
+    it("should throw error when no previous tag found", async () => {
+      mockGetLatestTag.mockResolvedValue(null as any)
+
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+        expect(true).toBe(false) // Should not reach here
+      } catch (error) {
+        expect(mockProcessExit).toHaveBeenCalled()
+        expect(mockConsoleError).toHaveBeenCalled()
+      }
+    })
+
+    it("should throw error when no new commits since last release", async () => {
+      mockGetCommitsSince.mockResolvedValue([])
+
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+        expect(true).toBe(false) // Should not reach here
+      } catch (error) {
+        expect(mockProcessExit).toHaveBeenCalled()
+        expect(mockConsoleError).toHaveBeenCalled()
+      }
+    })
+
+    it("should throw error when only meta commits found", async () => {
+      mockGetCommitsSince.mockResolvedValue([
+        { hash: "abc", message: "chore: bump version to 0.0.1", author: "Dev" },
+        { hash: "def", message: "chore: update changelog for sdk@0.0.1", author: "Dev" }
+      ])
+
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+        expect(true).toBe(false) // Should not reach here
+      } catch (error) {
+        expect(mockProcessExit).toHaveBeenCalled()
+        expect(mockConsoleError).toHaveBeenCalled()
+      }
+    })
+
+    it("should throw error when tag already exists", async () => {
+      mockTagExists.mockResolvedValue(true)
+
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+        expect(true).toBe(false) // Should not reach here
+      } catch (error) {
+        expect(mockProcessExit).toHaveBeenCalled()
+        expect(mockConsoleError).toHaveBeenCalled()
+      }
+    })
+
+    it("should throw error when package.json is invalid", async () => {
+      mockValidatePackage.mockResolvedValue({
+        valid: false,
+        path: "packages/sdk/package.json",
+        error: "Invalid package.json"
+      } as any)
+
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+        expect(true).toBe(false) // Should not reach here
+      } catch (error) {
+        expect(mockProcessExit).toHaveBeenCalled()
+        expect(mockConsoleError).toHaveBeenCalled()
+      }
+    })
+  })
+
+  describe("Meta Commit Filtering", () => {
+    it("should filter out version bump commits", async () => {
+      mockGetCommitsSince.mockResolvedValue([
+        { hash: "1", message: "feat: new feature", author: "Dev" },
+        { hash: "2", message: "chore: bump version to 0.0.1", author: "Dev" },
+        { hash: "3", message: "fix: bug fix", author: "Dev" }
+      ])
+
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+      } catch (error) {
+        // Expected to fail at process.exit
+      }
+
+      // Verify that only 2 real commits were used (version bump commit filtered out)
+      // We can't easily spy on parseCommits since it's a pure function, but we can verify
+      // the behavior by checking that the changelog was called with correct data
+      expect(mockWriteChangelog).toHaveBeenCalled()
+      const call = mockWriteChangelog.mock.calls[0] as any
+      expect(call[0].features.length + call[0].fixes.length + call[0].chores.length).toBe(2)
+    })
+
+    it("should filter out changelog update commits", async () => {
+      mockGetCommitsSince.mockResolvedValue([
+        { hash: "1", message: "feat: new feature", author: "Dev" },
+        { hash: "2", message: "chore: update changelog for sdk@0.0.1", author: "Dev" }
+      ])
+
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+      } catch (error) {
+        // Expected to fail at process.exit
+      }
+
+      // Verify that only 1 real commit was used (changelog update filtered out)
+      expect(mockWriteChangelog).toHaveBeenCalled()
+      const call = mockWriteChangelog.mock.calls[0] as any
+      expect(call[0].features.length + call[0].fixes.length + call[0].chores.length).toBe(1)
+    })
+
+    it("should keep meaningful chore commits", async () => {
+      mockGetCommitsSince.mockResolvedValue([
+        { hash: "1", message: "chore: update dependencies", author: "Dev" },
+        { hash: "2", message: "chore: improve build script", author: "Dev" }
+      ])
+
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+      } catch (error) {
+        // Expected to fail at process.exit
+      }
+
+      // Verify that both meaningful chore commits were included
+      expect(mockWriteChangelog).toHaveBeenCalled()
+      const call = mockWriteChangelog.mock.calls[0] as any
+      expect(call[0].chores.length).toBe(2)
+      expect(call[0].chores).toContain("update dependencies")
+      expect(call[0].chores).toContain("improve build script")
+    })
+  })
+
+  describe("Version Bumping", () => {
+    it("should bump patch version correctly", async () => {
+      mockGetLatestTag.mockResolvedValue("sdk@1.2.3")
+
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+      } catch (error) {
+        // Expected to fail at process.exit
+      }
+
+      expect(mockCreateTag).toHaveBeenCalledWith("sdk@", "1.2.4")
+    })
+
+    it("should bump minor version correctly", async () => {
+      mockGetLatestTag.mockResolvedValue("sdk@1.2.3")
+
+      const options: BumpOptions = { prefix: "sdk@", type: "minor" }
+
+      try {
+        await bump(options)
+      } catch (error) {
+        // Expected to fail at process.exit
+      }
+
+      expect(mockCreateTag).toHaveBeenCalledWith("sdk@", "1.3.0")
+    })
+
+    it("should bump major version correctly", async () => {
+      mockGetLatestTag.mockResolvedValue("sdk@1.2.3")
+
+      const options: BumpOptions = { prefix: "sdk@", type: "major" }
+
+      try {
+        await bump(options)
+      } catch (error) {
+        // Expected to fail at process.exit
+      }
+
+      expect(mockCreateTag).toHaveBeenCalledWith("sdk@", "2.0.0")
+    })
+  })
+
+  describe("Changelog Generation", () => {
+    it("should generate changelog with correct version", async () => {
+      mockGetLatestTag.mockResolvedValue("sdk@1.0.0")
+      mockGetCommitsSince.mockResolvedValue([
+        { hash: "1", message: "feat: feature A", author: "Dev" },
+        { hash: "2", message: "fix: bug B", author: "Dev" }
+      ])
+
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+      } catch (error) {
+        // Expected to fail at process.exit
+      }
+
+      expect(mockWriteChangelog).toHaveBeenCalledWith({
+        prefix: "sdk@",
+        version: "1.0.1",
+        features: ["feature A"],
+        fixes: ["bug B"],
+        chores: []
+      })
+    })
+
+    it("should organize commits by type", async () => {
+      mockGetCommitsSince.mockResolvedValue([
+        { hash: "1", message: "feat: new feature", author: "Dev" },
+        { hash: "2", message: "fix: bug fix", author: "Dev" },
+        { hash: "3", message: "chore: update deps", author: "Dev" }
+      ])
+
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+      } catch (error) {
+        // Expected to fail at process.exit
+      }
+
+      // Verify changelog was generated with organized commits
+      expect(mockWriteChangelog).toHaveBeenCalled()
+      const call = mockWriteChangelog.mock.calls[0] as any
+      expect(call[0].features.length).toBeGreaterThan(0)
+      expect(call[0].fixes.length).toBeGreaterThan(0)
+    })
+  })
+
+  describe("Complete Flow", () => {
+    it("should execute all phases in correct order", async () => {
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+      } catch (error) {
+        // Expected to fail at process.exit
+      }
+
+      // Verify all phases were called in order
+      expect(mockLoadConfig).toHaveBeenCalled()
+      expect(mockGetLatestTag).toHaveBeenCalledWith("sdk@")
+      expect(mockGetCommitsSince).toHaveBeenCalledWith("sdk@0.0.1")
+      expect(mockValidatePackage).toHaveBeenCalledWith("packages/sdk")
+      expect(mockTagExists).toHaveBeenCalledWith("sdk@0.0.2")
+      expect(mockWriteChangelog).toHaveBeenCalled()
+      expect(mockCreateTag).toHaveBeenCalledWith("sdk@", "0.0.2")
+      expect(mockPushTag).toHaveBeenCalledWith("sdk@0.0.2")
+      expect(mockWritePackageVersion).toHaveBeenCalledWith(
+        "packages/sdk/package.json",
+        "0.0.2"
+      )
+    })
+
+    it("should continue even if changelog commit fails", async () => {
+      mockSimpleGit.mockReturnValue({
+        add: mock(() => Promise.reject(new Error("Git error"))),
+        status: mock(() => Promise.resolve({ files: [] })),
+        commit: mock(() => Promise.resolve())
+      })
+
+      const options: BumpOptions = { prefix: "sdk@", type: "patch" }
+
+      try {
+        await bump(options)
+      } catch (error) {
+        // Expected to fail at process.exit
+      }
+
+      // Should still create tag and push
+      expect(mockCreateTag).toHaveBeenCalled()
+      expect(mockPushTag).toHaveBeenCalled()
+      expect(mockWritePackageVersion).toHaveBeenCalled()
+    })
+  })
+})
+

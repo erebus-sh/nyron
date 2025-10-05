@@ -28,7 +28,6 @@ import { loadConfig } from "../core/loadConfig"
 import { type BumpOptions } from "./types"
 import { createTag, getLatestTag, pushTag, tagExists } from "../git/tags"
 import { getCommitsSince } from "../git/commits"
-import { ask } from "../core/prompts"
 import { bumpVersion } from "../core/semver"
 import { validatePackage } from "../utils/validatePackage"
 import { writePackageVersion } from "../package/write"
@@ -62,7 +61,23 @@ const validate = async (options: BumpOptions) => {
   if (commitsSince.length === 0) {
     throw new Error("❌ No new commits since last release")
   }
-  console.log(`✓ Found ${commitsSince.length} commits since ${lastTag}`)
+  
+  // Filter out meta commits (version bumps, changelog updates)
+  const realCommits = commitsSince.filter(commit => {
+    const msg = commit.message.toLowerCase()
+    return !(
+      msg.includes('bump') && msg.includes('version') ||
+      msg.includes('update changelog') ||
+      msg.startsWith('chore: bump') ||
+      msg.startsWith('chore: update changelog')
+    )
+  })
+  
+  if (realCommits.length === 0) {
+    throw new Error("❌ No real commits to release (only version bump commits found)")
+  }
+  
+  console.log(`✓ Found ${realCommits.length} real commits since ${lastTag} (filtered ${commitsSince.length - realCommits.length} meta commits)`)
 
   // 3) Verify package.json
   const packageJson = await validatePackage(path)
@@ -81,42 +96,23 @@ const validate = async (options: BumpOptions) => {
   }
   console.log(`✓ New version: ${newVersion} (${options.type} bump)`)
 
-  return { tagPrefix, path, lastTag, commitsSince, newVersion, fullTag, packagePath: packageJson.path }
+  return { tagPrefix, path, lastTag, realCommits, newVersion, fullTag, packagePath: packageJson.path }
 }
 
 // ------------------------------------------------------------
 // Phase 2: Generate changelog for the NEW version
 // ------------------------------------------------------------
 const generateChangelogForNewVersion = async (data: Awaited<ReturnType<typeof validate>>) => {
-  const { tagPrefix, lastTag, commitsSince, newVersion } = data
+  const { tagPrefix, realCommits, newVersion } = data
   
   console.log(`\n📝 Generating changelog for version ${newVersion}...`)
-  
-  // Filter out version bump and changelog commits (meta commits)
-  // These are commits created by the bump process itself and shouldn't appear in changelogs
-  const filteredCommits = commitsSince.filter(commit => {
-    const msg = commit.message.toLowerCase()
-    return !(
-      msg.includes('bump') && msg.includes('version') ||
-      msg.includes('update changelog') ||
-      msg.startsWith('chore: bump') ||
-      msg.startsWith('chore: update changelog')
-    )
-  })
-  
-  if (filteredCommits.length === 0) {
-    console.log(`⚠️  No commits to include in changelog (all commits filtered out as meta commits)`)
-    return { generated: false }
-  }
-  
-  console.log(`✓ Found ${filteredCommits.length} commits (filtered ${commitsSince.length - filteredCommits.length} meta commits)`)
   
   // Import the changelog generation utilities
   const { parseCommits, organizeForChangelog } = await import("../git/commits-parser")
   const { writeChangelog } = await import("../changelog/write")
   
   // Parse commits into structured groups
-  const parsedCommits = parseCommits(filteredCommits)
+  const parsedCommits = parseCommits(realCommits)
   const { features, fixes, chores } = organizeForChangelog(parsedCommits)
   
   // Write changelog for the NEW version
@@ -128,8 +124,8 @@ const generateChangelogForNewVersion = async (data: Awaited<ReturnType<typeof va
     chores,
   })
   
-  console.log(`✓ Changelog generated for ${newVersion}: ${filteredCommits.length} commits (${lastTag} → HEAD)`)
-  return { generated: true, commitCount: filteredCommits.length }
+  console.log(`✓ Changelog generated for ${newVersion}: ${realCommits.length} commits`)
+  return { generated: true, commitCount: realCommits.length }
 }
 
 // ------------------------------------------------------------
@@ -138,12 +134,14 @@ const generateChangelogForNewVersion = async (data: Awaited<ReturnType<typeof va
 const commitChangelog = async (data: Awaited<ReturnType<typeof validate>>) => {
   const { tagPrefix, newVersion } = data
   const { simpleGit } = await import("simple-git")
+  const { buildChangelogPath } = await import("../changelog/file-parser")
   const git = simpleGit()
   
   console.log(`📝 Committing changelog...`)
   
-  // Stage the changelog directory
-  await git.add(`changelogs/${tagPrefix}*`)
+  // Stage the specific changelog file
+  const changelogPath = buildChangelogPath(tagPrefix, newVersion)
+  await git.add(changelogPath)
   
   // Check if there are changes to commit
   const status = await git.status()
@@ -185,16 +183,8 @@ export const bump = async (options: BumpOptions) => {
     // Phase 1: Validate and compute new version
     const data = await validate(options)
     
-    // Phase 2: Generate changelog for the NEW version (from lastTag to HEAD)
-    try {
-      await generateChangelogForNewVersion(data)
-    } catch (error) {
-      console.log(`⚠️  Could not generate changelog: ${error instanceof Error ? error.message : String(error)}`)
-      const confirm = await ask(`Continue with bump anyway? [y/N] `)
-      if (confirm.toLowerCase() !== "y") {
-        throw new Error("❌ Bump cancelled by user")
-      }
-    }
+    // Phase 2: Generate changelog for the NEW version
+    await generateChangelogForNewVersion(data)
     
     // Phase 3: Commit the changelog
     try {
