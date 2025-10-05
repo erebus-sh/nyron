@@ -32,7 +32,7 @@ import { bumpVersion } from "../core/semver"
 import { validatePackage } from "../utils/validatePackage"
 import { writePackageVersion } from "../package/write"
 import { writeChangelog } from "../changelog/write"
-import { parseCommits, organizeForChangelog } from "../git/commits-parser"
+import { parseCommits, organizeForChangelog, filterMetaCommits } from "../git/commits-parser"
 import { simpleGit } from "simple-git"
 import { buildChangelogPath } from "../changelog/file-parser"
 
@@ -67,15 +67,7 @@ const validate = async (options: BumpOptions) => {
   }
   
   // Filter out meta commits (version bumps, changelog updates)
-  const realCommits = commitsSince.filter(commit => {
-    const msg = commit.message.toLowerCase()
-    return !(
-      msg.includes('bump') && msg.includes('version') ||
-      msg.includes('update changelog') ||
-      msg.startsWith('chore: bump') ||
-      msg.startsWith('chore: update changelog')
-    )
-  })
+  const realCommits = filterMetaCommits(commitsSince)
   
   if (realCommits.length === 0) {
     throw new Error(`❌ No substantive commits to release\n   → Only version bump and changelog commits found since ${lastTag}\n   → Add feature, fix, or other meaningful commits before bumping`)
