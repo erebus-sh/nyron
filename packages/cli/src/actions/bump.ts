@@ -1,21 +1,30 @@
 // src/actions/bump.ts
 // ------------------------------------------------------------
-// Nyron: Smart version bumping workflow (dry-run then execute)
+// Nyron: Smart version bumping workflow
 // ------------------------------------------------------------
+// Mental Model:
+//   sdk@0.0.1 ---- A ---- B ---- C ---- sdk@0.0.2
+//                  └──────┬──────┘
+//                    changelog
+//
+// Before bumping from sdk@0.0.1 → sdk@0.0.2, we generate a 
+// changelog from commits A, B, C that happened since the last tag.
+// This ensures the changelog exists before we create the new tag.
+// ------------------------------------------------------------
+// Phase 0: Generate changelog from commits since last tag
 // Phase 1: Validate everything (dry run)
-// Phase 2: Execute all changes atomically
+// Phase 2: Execute all changes atomically (tag + package.json)
 // ------------------------------------------------------------
 
 import { loadConfig } from "../core/loadConfig"
 import { type BumpOptions } from "./types"
 import { createTag, getLatestTag, pushTag, tagExists } from "../git/tags"
 import { getCommitsSince } from "../git/commits"
-import { fileExists } from "../core/files"
 import { ask } from "../core/prompts"
 import { bumpVersion } from "../core/semver"
 import { validatePackage } from "../utils/validatePackage"
 import { writePackageVersion } from "../package/write"
-import { buildChangelogPath } from "../changelog/file-parser"
+import { generateChangelog } from "../utils/generateChangelog"
 
 // ------------------------------------------------------------
 // Phase 1: Validate (dry run)
@@ -65,20 +74,6 @@ const validate = async (options: BumpOptions) => {
   }
   console.log(`✓ New version: ${newVersion} (${options.type} bump)`)
 
-  // 5) Check changelog (with user prompt)
-  const changelogPath = buildChangelogPath(tagPrefix, version)
-  if (!(await fileExists(changelogPath))) {
-    console.log(`⚠️  No changelog found for ${path}`)
-    const confirm = await ask(
-      `Continue version bump anyway? [y/N] `
-    )
-    if (confirm.toLowerCase() !== "y") {
-      throw new Error("❌ Bump cancelled by user")
-    }
-  } else {
-    console.log(`✓ Changelog found`)
-  }
-
   return { tagPrefix, path, lastTag, commitsSince, newVersion, fullTag, packagePath: packageJson.path }
 }
 
@@ -107,10 +102,27 @@ const execute = async (data: Awaited<ReturnType<typeof validate>>) => {
 // ------------------------------------------------------------
 export const bump = async (options: BumpOptions) => {
   try {
-    // 1. Validate
+    // Phase 0: Generate changelog from commits since last tag
+    console.log(`\n📝 Generating changelog from recent commits...`)
+    try {
+      const result = await generateChangelog(options.prefix)
+      if (result.generated) {
+        console.log(`✓ Changelog generated: ${result.commitCount} commits (${result.from} → ${result.to})`)
+      } else {
+        console.log(`⚠️  ${result.reason}`)
+      }
+    } catch (error) {
+      console.log(`⚠️  Could not generate changelog: ${error instanceof Error ? error.message : String(error)}`)
+      const confirm = await ask(`Continue with bump anyway? [y/N] `)
+      if (confirm.toLowerCase() !== "y") {
+        throw new Error("❌ Bump cancelled by user")
+      }
+    }
+    
+    // Phase 1: Validate
     const data = await validate(options)
     
-    // 2. Execute
+    // Phase 2: Execute
     await execute(data)
   } catch (error) {
     console.error(`\n${error instanceof Error ? error.message : String(error)}`)

@@ -1,5 +1,5 @@
-import { describe, it, expect, mock, beforeEach, afterEach } from "bun:test"
-import { changelog } from "../src/actions/changelog"
+import { describe, it, expect, mock, beforeEach } from "bun:test"
+import { generateChangelog } from "../src/utils/generateChangelog"
 
 // Mock all dependencies
 const mockGetLatestTag = mock(() => Promise.resolve("cli-v@1.2.0"))
@@ -24,25 +24,13 @@ mock.module("../src/changelog/write", () => ({
   writeChangelog: mockWriteChangelog,
 }))
 
-describe("changelog", () => {
-  // Capture console output
-  let consoleOutput: string[] = []
-  const originalConsoleLog = console.log
-
+describe("generateChangelog", () => {
   beforeEach(() => {
-    consoleOutput = []
-    console.log = (...args: any[]) => {
-      consoleOutput.push(args.join(" "))
-    }
     // Reset all mocks
     mockGetLatestTag.mockClear()
     mockGetPreviousTag.mockClear()
     mockGetCommitsBetween.mockClear()
     mockWriteChangelog.mockClear()
-  })
-
-  afterEach(() => {
-    console.log = originalConsoleLog
   })
 
   it("should generate changelog successfully with features and fixes", async () => {
@@ -54,7 +42,7 @@ describe("changelog", () => {
       { hash: "3", message: "chore: update deps", author: "C" },
     ])
 
-    await changelog({ prefix: "cli-v@" })
+    const result = await generateChangelog("cli-v@")
 
     expect(mockGetLatestTag).toHaveBeenCalledWith("cli-v@")
     expect(mockGetPreviousTag).toHaveBeenCalledWith("cli-v@")
@@ -66,7 +54,9 @@ describe("changelog", () => {
       fixes: ["**api**: fix endpoint"],
       chores: ["update deps"],
     })
-    expect(consoleOutput).toContain("🎉 Changelog generated successfully!")
+    expect(result.generated).toBe(true)
+    expect(result.version).toBe("1.2.0")
+    expect(result.commitCount).toBe(3)
   })
 
   it("should handle commits without scopes", async () => {
@@ -77,7 +67,7 @@ describe("changelog", () => {
       { hash: "2", message: "fix: fix bug", author: "B" },
     ])
 
-    await changelog({ prefix: "v@" })
+    const result = await generateChangelog("v@")
 
     expect(mockWriteChangelog).toHaveBeenCalledWith({
       prefix: "v@",
@@ -86,6 +76,7 @@ describe("changelog", () => {
       fixes: ["fix bug"],
       chores: [],
     })
+    expect(result.generated).toBe(true)
   })
 
   it("should categorize various commit types correctly", async () => {
@@ -100,7 +91,7 @@ describe("changelog", () => {
       { hash: "6", message: "test: add tests", author: "F" },
     ])
 
-    await changelog({ prefix: "app@" })
+    const result = await generateChangelog("app@")
 
     const call = (mockWriteChangelog.mock.calls as any)[0]?.[0]
     expect(call).toBeDefined()
@@ -113,43 +104,43 @@ describe("changelog", () => {
     expect(call.chores).toContain("cleanup")
     expect(call.chores).toContain("optimize")
     expect(call.chores).toContain("add tests")
+    expect(result.generated).toBe(true)
   })
 
-  it("should exit early when no latest tag is found", async () => {
+  it("should throw error when no latest tag is found", async () => {
     mockGetLatestTag.mockResolvedValue(null as any)
 
-    await changelog({ prefix: "v@" })
+    await expect(generateChangelog("v@")).rejects.toThrow("No tag found for v@")
 
     expect(mockGetLatestTag).toHaveBeenCalledWith("v@")
     expect(mockGetPreviousTag).not.toHaveBeenCalled()
     expect(mockGetCommitsBetween).not.toHaveBeenCalled()
     expect(mockWriteChangelog).not.toHaveBeenCalled()
-    expect(consoleOutput).toContain("⚠️ No tag found for v@")
   })
 
-  it("should exit early when no previous tag is found", async () => {
+  it("should throw error when no previous tag is found", async () => {
     mockGetLatestTag.mockResolvedValue("v@1.0.0")
     mockGetPreviousTag.mockResolvedValue(null as any)
 
-    await changelog({ prefix: "v@" })
+    await expect(generateChangelog("v@")).rejects.toThrow("No previous tag found for v@")
 
     expect(mockGetLatestTag).toHaveBeenCalledWith("v@")
     expect(mockGetPreviousTag).toHaveBeenCalledWith("v@")
     expect(mockGetCommitsBetween).not.toHaveBeenCalled()
     expect(mockWriteChangelog).not.toHaveBeenCalled()
-    expect(consoleOutput).toContain("⚠️ No previous tag found for v@")
   })
 
-  it("should exit early when no commits found between tags", async () => {
+  it("should return generated=false when no commits found between tags", async () => {
     mockGetLatestTag.mockResolvedValue("v@1.1.0")
     mockGetPreviousTag.mockResolvedValue("v@1.0.0")
     mockGetCommitsBetween.mockResolvedValue([])
 
-    await changelog({ prefix: "v@" })
+    const result = await generateChangelog("v@")
 
     expect(mockGetCommitsBetween).toHaveBeenCalledWith("v@1.0.0", "v@1.1.0")
     expect(mockWriteChangelog).not.toHaveBeenCalled()
-    expect(consoleOutput).toContain("⚠️ No commits found between tags")
+    expect(result.generated).toBe(false)
+    expect(result.reason).toBe("No commits found between tags")
   })
 
   it("should handle tags with different prefix formats", async () => {
@@ -159,7 +150,7 @@ describe("changelog", () => {
       { hash: "1", message: "feat: feature", author: "A" },
     ])
 
-    await changelog({ prefix: "@scope/package@" })
+    const result = await generateChangelog("@scope/package@")
 
     expect(mockWriteChangelog).toHaveBeenCalledWith({
       prefix: "@scope/package@",
@@ -168,6 +159,7 @@ describe("changelog", () => {
       fixes: [],
       chores: [],
     })
+    expect(result.generated).toBe(true)
   })
 
   it("should handle non-conventional commits", async () => {
@@ -179,7 +171,7 @@ describe("changelog", () => {
       { hash: "3", message: "WIP: work in progress", author: "C" },
     ])
 
-    await changelog({ prefix: "v@" })
+    const result = await generateChangelog("v@")
 
     const call = (mockWriteChangelog.mock.calls as any)[0]?.[0]
     expect(call).toBeDefined()
@@ -191,6 +183,7 @@ describe("changelog", () => {
     expect(call.chores).toContain("random commit message")
     // "WIP: work in progress" gets parsed as a conventional commit type "WIP"
     expect(call.chores).toContain("work in progress")
+    expect(result.generated).toBe(true)
   })
 
   it("should handle multiple commits with same scope", async () => {
@@ -202,7 +195,7 @@ describe("changelog", () => {
       { hash: "3", message: "fix(core): fix C", author: "C" },
     ])
 
-    await changelog({ prefix: "v@" })
+    const result = await generateChangelog("v@")
 
     expect(mockWriteChangelog).toHaveBeenCalledWith({
       prefix: "v@",
@@ -211,9 +204,10 @@ describe("changelog", () => {
       fixes: ["**core**: fix C"],
       chores: [],
     })
+    expect(result.generated).toBe(true)
   })
 
-  it("should log progress messages during execution", async () => {
+  it("should return metadata about the changelog generation", async () => {
     mockGetLatestTag.mockResolvedValue("v@1.2.0")
     mockGetPreviousTag.mockResolvedValue("v@1.1.0")
     mockGetCommitsBetween.mockResolvedValue([
@@ -221,12 +215,13 @@ describe("changelog", () => {
       { hash: "2", message: "fix: fix", author: "B" },
     ])
 
-    await changelog({ prefix: "v@" })
+    const result = await generateChangelog("v@")
 
-    expect(consoleOutput).toContain("🔍 Running Nyron changelog...")
-    expect(consoleOutput).toContain("📝 Generating changelog from v@1.1.0 to v@1.2.0")
-    expect(consoleOutput).toContain("📊 Found 2 commits")
-    expect(consoleOutput).toContain("🎉 Changelog generated successfully!")
+    expect(result.generated).toBe(true)
+    expect(result.version).toBe("1.2.0")
+    expect(result.commitCount).toBe(2)
+    expect(result.from).toBe("v@1.1.0")
+    expect(result.to).toBe("v@1.2.0")
   })
 
   it("should handle empty features and fixes arrays", async () => {
@@ -237,7 +232,7 @@ describe("changelog", () => {
       { hash: "2", message: "docs: update readme", author: "B" },
     ])
 
-    await changelog({ prefix: "v@" })
+    const result = await generateChangelog("v@")
 
     const call = (mockWriteChangelog.mock.calls as any)[0]?.[0]
     expect(call).toBeDefined()
@@ -248,6 +243,7 @@ describe("changelog", () => {
     expect(call.chores.length).toBe(2)
     expect(call.chores).toContain("update deps")
     expect(call.chores).toContain("update readme")
+    expect(result.generated).toBe(true)
   })
 })
 

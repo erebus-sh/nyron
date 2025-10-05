@@ -18,7 +18,3 @@ export interface TagOptions extends OptionValues {
     prefix: string
     version: string
 }
-
-export interface ChangelogOptions extends OptionValues {
-    prefix: string
-}

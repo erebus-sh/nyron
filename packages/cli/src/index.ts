@@ -1,7 +1,6 @@
 #!/usr/bin/env bun
 import { program } from "commander"
 import { bump } from "./actions/bump"
-import { changelog } from "./actions/changelog"
 import { diff } from "./actions/diff"
 import { init } from "./actions/init"
 import { tag } from "./actions/tag"
@@ -15,26 +14,18 @@ dotenv.config({
 program
   .name("nyron")
   .description("Nyron CLI — smarter multi-package versioning")
-  .version("0.2.9")
+  .version("0.3.0")
 
 // -----------------------------
 // bump
 // -----------------------------
+// Automatically generates changelog before bumping version
 program
   .command("bump")
-  .description("Bump versions intelligently across projects")
+  .description("Bump versions intelligently across projects (includes changelog generation)")
   .requiredOption("-t, --type <type>", "Bump type", BumpType.join(", "))
   .requiredOption("-x, --prefix <prefix>", "Filter to a specific tag prefix")
   .action(bump)
-
-// -----------------------------
-// changelog
-// -----------------------------
-program
-  .command("changelog")
-  .requiredOption("-x, --prefix <prefix>", "Filter to a specific tag prefix")
-  .description("Generate a changelog for the current project")
-  .action(changelog)
 
 // -----------------------------
 // diff
