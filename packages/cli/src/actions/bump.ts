@@ -31,6 +31,10 @@ import { getCommitsSince } from "../git/commits"
 import { bumpVersion } from "../core/semver"
 import { validatePackage } from "../utils/validatePackage"
 import { writePackageVersion } from "../package/write"
+import { writeChangelog } from "../changelog/write"
+import { parseCommits, organizeForChangelog } from "../git/commits-parser"
+import { simpleGit } from "simple-git"
+import { buildChangelogPath } from "../changelog/file-parser"
 
 // ------------------------------------------------------------
 // Phase 1: Validate (dry run)
@@ -108,8 +112,6 @@ const generateChangelogForNewVersion = async (data: Awaited<ReturnType<typeof va
   console.log(`\n📝 Generating changelog for version ${newVersion}...`)
   
   // Import the changelog generation utilities
-  const { parseCommits, organizeForChangelog } = await import("../git/commits-parser")
-  const { writeChangelog } = await import("../changelog/write")
   
   // Parse commits into structured groups
   const parsedCommits = parseCommits(realCommits)
@@ -133,8 +135,6 @@ const generateChangelogForNewVersion = async (data: Awaited<ReturnType<typeof va
 // ------------------------------------------------------------
 const commitChangelog = async (data: Awaited<ReturnType<typeof validate>>) => {
   const { tagPrefix, newVersion } = data
-  const { simpleGit } = await import("simple-git")
-  const { buildChangelogPath } = await import("../changelog/file-parser")
   const git = simpleGit()
   
   console.log(`📝 Committing changelog...`)
