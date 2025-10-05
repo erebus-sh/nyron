@@ -1,4 +1,4 @@
-import { defineConfig } from "@nyron/cli/src/core/config"
+import { defineConfig } from "@nyron/cli/config"
 
 export default defineConfig({
   repo: "erebus-sh/nyron",

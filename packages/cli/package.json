@@ -8,8 +8,11 @@
     "nyron": "./dist/index.js"
   },
   "scripts": {
-    "build": "bun build src/index.ts --outfile dist/index.js --target bun",
-    "cli": "bun run build && bun dist/index.js"
+    "clean": "rm -rf dist",
+    "build:binary": "bun build src/index.ts --outfile dist/index.js --target bun",
+    "build:esm": "tsdown --config build.config.ts",
+    "cli": "bun run build && bun dist/index.js",
+    "build": "bun run clean && bun run build:binary && bun run build:esm"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -23,6 +26,16 @@
     "dotenv": "^17.2.3",
     "octokit": "^5.0.3",
     "semver": "^7.7.2",
-    "simple-git": "^3.28.0"
+    "simple-git": "^3.28.0",
+    "tsdown": "^0.15.6"
+  },
+  "exports": {
+    "./cli": "./dist/index.js",
+    "./package.json": "./package.json",
+    "./config": {
+      "types": "./dist/core/config.d.ts",
+      "import": "./dist/core/config.js",
+      "require": "./dist/core/config.cjs"
+    }
   }
 }
