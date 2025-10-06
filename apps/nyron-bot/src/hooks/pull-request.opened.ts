@@ -17,7 +17,7 @@ export async function pullRequestOpened(context: Context<"pull_request.opened">)
         throw new Error("nyron.config.ts not found or is not a file");
     }
 
-    const config = parseConfig(nyronConfig.data.content, true);
+    const config = parseConfig(nyronConfig.data.content, false);
 
     const entries = Object.entries(config.projects);
 
