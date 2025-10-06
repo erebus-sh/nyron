@@ -16,7 +16,7 @@ mock.module("../src/git/tags", () => ({
   getPreviousTag: mockGetPreviousTag,
 }))
 
-mock.module("../src/git/commits", () => ({
+mock.module("../src/github/commits", () => ({
   getCommitsBetween: mockGetCommitsBetween,
 }))
 
@@ -42,11 +42,11 @@ describe("generateChangelog", () => {
       { hash: "3", message: "chore: update deps", author: "C" },
     ])
 
-    const result = await generateChangelog("cli-v@")
+    const result = await generateChangelog("cli-v@", "test/repo")
 
     expect(mockGetLatestTag).toHaveBeenCalledWith("cli-v@")
     expect(mockGetPreviousTag).toHaveBeenCalledWith("cli-v@")
-    expect(mockGetCommitsBetween).toHaveBeenCalledWith("cli-v@1.1.0", "cli-v@1.2.0")
+    expect(mockGetCommitsBetween).toHaveBeenCalledWith("cli-v@1.1.0", "cli-v@1.2.0", "test/repo")
     expect(mockWriteChangelog).toHaveBeenCalledWith({
       prefix: "cli-v@",
       version: "1.2.0",
@@ -67,7 +67,7 @@ describe("generateChangelog", () => {
       { hash: "2", message: "fix: fix bug", author: "B" },
     ])
 
-    const result = await generateChangelog("v@")
+    const result = await generateChangelog("v@", "test/repo")
 
     expect(mockWriteChangelog).toHaveBeenCalledWith({
       prefix: "v@",
@@ -91,7 +91,7 @@ describe("generateChangelog", () => {
       { hash: "6", message: "test: add tests", author: "F" },
     ])
 
-    const result = await generateChangelog("app@")
+    const result = await generateChangelog("app@", "test/repo")
 
     const call = (mockWriteChangelog.mock.calls as any)[0]?.[0]
     expect(call).toBeDefined()
@@ -110,7 +110,7 @@ describe("generateChangelog", () => {
   it("should throw error when no latest tag is found", async () => {
     mockGetLatestTag.mockResolvedValue(null as any)
 
-    await expect(generateChangelog("v@")).rejects.toThrow("No tag found for v@")
+    await expect(generateChangelog("v@", "test/repo")).rejects.toThrow("No tag found for v@")
 
     expect(mockGetLatestTag).toHaveBeenCalledWith("v@")
     expect(mockGetPreviousTag).not.toHaveBeenCalled()
@@ -122,7 +122,7 @@ describe("generateChangelog", () => {
     mockGetLatestTag.mockResolvedValue("v@1.0.0")
     mockGetPreviousTag.mockResolvedValue(null as any)
 
-    await expect(generateChangelog("v@")).rejects.toThrow("No previous tag found for v@")
+    await expect(generateChangelog("v@", "test/repo")).rejects.toThrow("No previous tag found for v@")
 
     expect(mockGetLatestTag).toHaveBeenCalledWith("v@")
     expect(mockGetPreviousTag).toHaveBeenCalledWith("v@")
@@ -135,9 +135,9 @@ describe("generateChangelog", () => {
     mockGetPreviousTag.mockResolvedValue("v@1.0.0")
     mockGetCommitsBetween.mockResolvedValue([])
 
-    const result = await generateChangelog("v@")
+    const result = await generateChangelog("v@", "test/repo")
 
-    expect(mockGetCommitsBetween).toHaveBeenCalledWith("v@1.0.0", "v@1.1.0")
+    expect(mockGetCommitsBetween).toHaveBeenCalledWith("v@1.0.0", "v@1.1.0", "test/repo")
     expect(mockWriteChangelog).not.toHaveBeenCalled()
     expect(result.generated).toBe(false)
     expect(result.reason).toBe("No commits found between tags")
@@ -150,7 +150,7 @@ describe("generateChangelog", () => {
       { hash: "1", message: "feat: feature", author: "A" },
     ])
 
-    const result = await generateChangelog("@scope/package@")
+    const result = await generateChangelog("@scope/package@", "test/repo")
 
     expect(mockWriteChangelog).toHaveBeenCalledWith({
       prefix: "@scope/package@",
@@ -171,7 +171,7 @@ describe("generateChangelog", () => {
       { hash: "3", message: "WIP: work in progress", author: "C" },
     ])
 
-    const result = await generateChangelog("v@")
+    const result = await generateChangelog("v@", "test/repo")
 
     const call = (mockWriteChangelog.mock.calls as any)[0]?.[0]
     expect(call).toBeDefined()
@@ -195,7 +195,7 @@ describe("generateChangelog", () => {
       { hash: "3", message: "fix(core): fix C", author: "C" },
     ])
 
-    const result = await generateChangelog("v@")
+    const result = await generateChangelog("v@", "test/repo")
 
     expect(mockWriteChangelog).toHaveBeenCalledWith({
       prefix: "v@",
@@ -215,7 +215,7 @@ describe("generateChangelog", () => {
       { hash: "2", message: "fix: fix", author: "B" },
     ])
 
-    const result = await generateChangelog("v@")
+    const result = await generateChangelog("v@", "test/repo")
 
     expect(result.generated).toBe(true)
     expect(result.version).toBe("1.2.0")
@@ -232,7 +232,7 @@ describe("generateChangelog", () => {
       { hash: "2", message: "docs: update readme", author: "B" },
     ])
 
-    const result = await generateChangelog("v@")
+    const result = await generateChangelog("v@", "test/repo")
 
     const call = (mockWriteChangelog.mock.calls as any)[0]?.[0]
     expect(call).toBeDefined()

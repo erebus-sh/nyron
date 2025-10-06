@@ -33,7 +33,7 @@ describe("tag-parser", () => {
         } catch (e: unknown) {
             if (e instanceof Error) {
                 console.log("parseTag('pkg@notsemver') threw:", e.message)
-                expect(e.message).toBe("Invalid semver in tag: pkg@notsemver")
+                expect(e.message).toBe("Invalid semantic version in tag: pkg@notsemver\n   → Version must follow semver format (e.g., 1.0.0)")
             }
         }
     })
@@ -44,7 +44,7 @@ describe("tag-parser", () => {
         } catch (e: unknown) {
             if (e instanceof Error) {
                 console.log("parseTag('pkg@') threw:", e.message)
-                expect(e.message).toBe("Invalid semver in tag: pkg@")
+                expect(e.message).toBe("Invalid semantic version in tag: pkg@\n   → Version must follow semver format (e.g., 1.0.0)")
             }
         }
     })
@@ -98,7 +98,7 @@ describe("tag-parser", () => {
         } catch (e: unknown) {
             if (e instanceof Error) {
                 console.log("buildTag('lib@', 'notsemver') threw:", e.message)
-                expect(e.message).toBe("Invalid semver: notsemver")
+                expect(e.message).toBe("Invalid semantic version: notsemver\n   → Version must follow semver format (e.g., 1.0.0)")
             }
         }
     })
@@ -109,7 +109,7 @@ describe("tag-parser", () => {
         } catch (e: unknown) {
             if (e instanceof Error) {
                 console.log("buildTag('lib@', '') threw:", e.message)
-                expect(e.message).toBe("Invalid semver: ")
+                expect(e.message).toBe("Invalid semantic version: \n   → Version must follow semver format (e.g., 1.0.0)")
             }
         }
     })

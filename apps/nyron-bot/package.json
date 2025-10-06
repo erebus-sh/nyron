@@ -19,6 +19,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@nyron/cli": "^0.4.0",
     "probot": "^13.4.5"
   },
   "devDependencies": {

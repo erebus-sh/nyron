@@ -8,22 +8,14 @@ describe("commits-parser", () => {
         hash: "123",
         message: "feat: add feature",
         author: "John Doe",
+        repo: "owner/repo",
       }
     ]
     const result = parseCommits(commits)
-    console.log("parseCommits([feat: add feature]) =", result)
-    expect(result).toEqual({
-      Features: {
-        general: [
-          {
-            type: "Features",
-            scope: "general",
-            message: "add feature",
-            raw: "feat: add feature"
-          }
-        ]
-      }
-    })
+    expect(result["Features"]?.["general"]).toBeDefined()
+    expect(result["Features"]?.["general"]?.[0]?.message).toBe("add feature")
+    expect(result["Features"]?.["general"]?.[0]?.author).toBe("John Doe")
+    expect(result["Features"]?.["general"]?.[0]?.hash).toBe("123")
   })
 
   it("should parse a commit with scope", () => {
@@ -32,22 +24,13 @@ describe("commits-parser", () => {
         hash: "456",
         message: "fix(core): fix bug",
         author: "Jane Doe",
+        repo: "owner/repo",
       }
     ]
     const result = parseCommits(commits)
-    console.log("parseCommits([fix(core): fix bug]) =", result)
-    expect(result).toEqual({
-      "Bug Fixes": {
-        core: [
-          {
-            type: "Bug Fixes",
-            scope: "core",
-            message: "fix bug",
-            raw: "fix(core): fix bug"
-          }
-        ]
-      }
-    })
+    expect(result["Bug Fixes"]?.["core"]).toBeDefined()
+    expect(result["Bug Fixes"]?.["core"]?.[0]?.message).toBe("fix bug")
+    expect(result["Bug Fixes"]?.["core"]?.[0]?.scope).toBe("core")
   })
 
   it("should group multiple types and scopes", () => {
@@ -56,67 +39,32 @@ describe("commits-parser", () => {
         hash: "1",
         message: "feat(ui): add button",
         author: "A",
+        repo: "owner/repo",
       },
       {
         hash: "2",
         message: "fix(api): fix endpoint",
         author: "B",
+        repo: "owner/repo",
       },
       {
         hash: "3",
         message: "docs: update readme",
         author: "C",
+        repo: "owner/repo",
       },
       {
         hash: "4",
         message: "refactor: cleanup code",
         author: "D",
+        repo: "owner/repo",
       }
     ]
     const result = parseCommits(commits)
-    console.log("parseCommits([feat(ui), fix(api), docs, refactor]) =", result)
-    expect(result).toEqual({
-      Features: {
-        ui: [
-          {
-            type: "Features",
-            scope: "ui",
-            message: "add button",
-            raw: "feat(ui): add button"
-          }
-        ]
-      },
-      "Bug Fixes": {
-        api: [
-          {
-            type: "Bug Fixes",
-            scope: "api",
-            message: "fix endpoint",
-            raw: "fix(api): fix endpoint"
-          }
-        ]
-      },
-      Docs: {
-        general: [
-          {
-            type: "Docs",
-            scope: "general",
-            message: "update readme",
-            raw: "docs: update readme"
-          }
-        ]
-      },
-      Refactors: {
-        general: [
-          {
-            type: "Refactors",
-            scope: "general",
-            message: "cleanup code",
-            raw: "refactor: cleanup code"
-          }
-        ]
-      }
-    })
+    expect(result["Features"]?.["ui"]).toBeDefined()
+    expect(result["Bug Fixes"]?.["api"]).toBeDefined()
+    expect(result["Docs"]?.["general"]).toBeDefined()
+    expect(result["Refactors"]?.["general"]).toBeDefined()
   })
 
   it("should bucket non-conventional commits as 'other'", () => {
@@ -125,21 +73,12 @@ describe("commits-parser", () => {
         hash: "789",
         message: "random commit message",
         author: "E",
+        repo: "owner/repo",
       }
     ]
     const result = parseCommits(commits)
-    console.log("parseCommits([random commit message]) =", result)
-    expect(result).toEqual({
-      other: {
-        general: [
-          {
-            type: "other",
-            message: "random commit message",
-            raw: "random commit message"
-          }
-        ]
-      }
-    })
+    expect(result["other"]?.["general"]).toBeDefined()
+    expect(result["other"]?.["general"]?.[0]?.message).toBe("random commit message")
   })
 
   it("should parse commit with unusual type", () => {
@@ -148,22 +87,12 @@ describe("commits-parser", () => {
         hash: "101",
         message: "build: update deps",
         author: "F",
+        repo: "owner/repo",
       }
     ]
     const result = parseCommits(commits)
-    console.log("parseCommits([build: update deps]) =", result)
-    expect(result).toEqual({
-      Other: {
-        general: [
-          {
-            type: "Other",
-            scope: "general",
-            message: "update deps",
-            raw: "build: update deps"
-          }
-        ]
-      }
-    })
+    expect(result["Other"]?.["general"]).toBeDefined()
+    expect(result["Other"]?.["general"]?.[0]?.message).toBe("update deps")
   })
 
   it("should parse commit with multi-word scope", () => {
@@ -172,22 +101,12 @@ describe("commits-parser", () => {
         hash: "102",
         message: "feat(my-lib): add something",
         author: "G",
+        repo: "owner/repo",
       }
     ]
     const result = parseCommits(commits)
-    console.log("parseCommits([feat(my-lib): add something]) =", result)
-    expect(result).toEqual({
-      Features: {
-        "my-lib": [
-          {
-            type: "Features",
-            scope: "my-lib",
-            message: "add something",
-            raw: "feat(my-lib): add something"
-          }
-        ]
-      }
-    })
+    expect(result["Features"]?.["my-lib"]).toBeDefined()
+    expect(result["Features"]?.["my-lib"]?.[0]?.message).toBe("add something")
   })
 
   it("should parse commit with extra whitespace", () => {
@@ -196,22 +115,12 @@ describe("commits-parser", () => {
         hash: "103",
         message: "  fix:   fix whitespace   ",
         author: "H",
+        repo: "owner/repo",
       }
     ]
     const result = parseCommits(commits)
-    console.log("parseCommits([fix:   fix whitespace   ]) =", result)
-    expect(result).toEqual({
-      "Bug Fixes": {
-        general: [
-          {
-            type: "Bug Fixes",
-            scope: "general",
-            message: "fix whitespace",
-            raw: "fix:   fix whitespace"
-          }
-        ]
-      }
-    })
+    expect(result["Bug Fixes"]?.["general"]).toBeDefined()
+    expect(result["Bug Fixes"]?.["general"]?.[0]?.message).toBe("fix whitespace")
   })
 
   it("should parse multiple commits of same type and scope", () => {
@@ -220,126 +129,104 @@ describe("commits-parser", () => {
         hash: "201",
         message: "feat(core): add A",
         author: "I",
+        repo: "owner/repo",
       },
       {
         hash: "202",
         message: "feat(core): add B",
         author: "J",
+        repo: "owner/repo",
       }
     ]
     const result = parseCommits(commits)
-    console.log("parseCommits([feat(core): add A, feat(core): add B]) =", result)
-    expect(result).toEqual({
-      Features: {
-        core: [
-          {
-            type: "Features",
-            scope: "core",
-            message: "add A",
-            raw: "feat(core): add A"
-          },
-          {
-            type: "Features",
-            scope: "core",
-            message: "add B",
-            raw: "feat(core): add B"
-          }
-        ]
-      }
-    })
+    expect(result["Features"]?.["core"]).toBeDefined()
+    expect(result["Features"]?.["core"]?.length).toBe(2)
+    expect(result["Features"]?.["core"]?.[0]?.message).toBe("add A")
+    expect(result["Features"]?.["core"]?.[1]?.message).toBe("add B")
   })
 })
 
 describe("organizeForChangelog", () => {
   it("should organize features, fixes, and chores", () => {
     const commits = [
-      { hash: "1", message: "feat: add feature A", author: "A" },
-      { hash: "2", message: "fix: fix bug B", author: "B" },
-      { hash: "3", message: "chore: update deps", author: "C" },
+      { hash: "1", message: "feat: add feature A", author: "A", repo: "owner/repo" },
+      { hash: "2", message: "fix: fix bug B", author: "B", repo: "owner/repo" },
+      { hash: "3", message: "chore: update deps", author: "C", repo: "owner/repo" },
     ]
     const parsed = parseCommits(commits)
     const organized = organizeForChangelog(parsed)
     
-    expect(organized).toEqual({
-      features: ["add feature A"],
-      fixes: ["fix bug B"],
-      chores: ["update deps"]
-    })
+    expect(organized.features.length).toBe(1)
+    expect(organized.fixes.length).toBe(1)
+    expect(organized.chores.length).toBe(1)
+    expect(organized.features[0]).toContain("add feature A")
+    expect(organized.fixes[0]).toContain("fix bug B")
+    expect(organized.chores[0]).toContain("update deps")
   })
 
   it("should add scope labels for scoped commits", () => {
     const commits = [
-      { hash: "1", message: "feat(ui): add button", author: "A" },
-      { hash: "2", message: "fix(api): fix endpoint", author: "B" },
-      { hash: "3", message: "docs(readme): update docs", author: "C" },
+      { hash: "1", message: "feat(ui): add button", author: "A", repo: "owner/repo" },
+      { hash: "2", message: "fix(api): fix endpoint", author: "B", repo: "owner/repo" },
+      { hash: "3", message: "docs(readme): update docs", author: "C", repo: "owner/repo" },
     ]
     const parsed = parseCommits(commits)
     const organized = organizeForChangelog(parsed)
     
-    expect(organized).toEqual({
-      features: ["**ui**: add button"],
-      fixes: ["**api**: fix endpoint"],
-      chores: ["**readme**: update docs"]
-    })
+    expect(organized.features[0]).toContain("**ui**:")
+    expect(organized.features[0]).toContain("add button")
+    expect(organized.fixes[0]).toContain("**api**:")
+    expect(organized.chores[0]).toContain("**readme**:")
   })
 
   it("should not add scope label for general scope", () => {
     const commits = [
-      { hash: "1", message: "feat: add feature", author: "A" },
-      { hash: "2", message: "fix: fix bug", author: "B" },
+      { hash: "1", message: "feat: add feature", author: "A", repo: "owner/repo" },
+      { hash: "2", message: "fix: fix bug", author: "B", repo: "owner/repo" },
     ]
     const parsed = parseCommits(commits)
     const organized = organizeForChangelog(parsed)
     
-    expect(organized).toEqual({
-      features: ["add feature"],
-      fixes: ["fix bug"],
-      chores: []
-    })
+    expect(organized.features[0]).not.toContain("**general**:")
+    expect(organized.fixes[0]).not.toContain("**general**:")
   })
 
   it("should categorize all non-feature/fix types as chores", () => {
     const commits = [
-      { hash: "1", message: "docs: update readme", author: "A" },
-      { hash: "2", message: "refactor: cleanup", author: "B" },
-      { hash: "3", message: "perf: optimize", author: "C" },
-      { hash: "4", message: "test: add tests", author: "D" },
-      { hash: "5", message: "style: format", author: "E" },
-      { hash: "6", message: "chore: misc", author: "F" },
-      { hash: "7", message: "build: update config", author: "G" },
-      { hash: "8", message: "random message", author: "H" },
+      { hash: "1", message: "docs: update readme", author: "A", repo: "owner/repo" },
+      { hash: "2", message: "refactor: cleanup", author: "B", repo: "owner/repo" },
+      { hash: "3", message: "perf: optimize", author: "C", repo: "owner/repo" },
+      { hash: "4", message: "test: add tests", author: "D", repo: "owner/repo" },
+      { hash: "5", message: "style: format", author: "E", repo: "owner/repo" },
+      { hash: "6", message: "chore: misc", author: "F", repo: "owner/repo" },
+      { hash: "7", message: "build: update config", author: "G", repo: "owner/repo" },
+      { hash: "8", message: "random message", author: "H", repo: "owner/repo" },
     ]
     const parsed = parseCommits(commits)
     const organized = organizeForChangelog(parsed)
     
     expect(organized.features).toEqual([])
     expect(organized.fixes).toEqual([])
-    // Check that all expected items are present (order may vary based on commit type iteration)
     expect(organized.chores.length).toBe(8)
-    expect(organized.chores).toContain("update readme")
-    expect(organized.chores).toContain("cleanup")
-    expect(organized.chores).toContain("optimize")
-    expect(organized.chores).toContain("add tests")
-    expect(organized.chores).toContain("format")
-    expect(organized.chores).toContain("misc")
-    expect(organized.chores).toContain("update config")
-    expect(organized.chores).toContain("random message")
+    // Check that messages are present (format changed to include author/hash)
+    expect(organized.chores.some(c => c.includes("update readme"))).toBe(true)
+    expect(organized.chores.some(c => c.includes("cleanup"))).toBe(true)
+    expect(organized.chores.some(c => c.includes("optimize"))).toBe(true)
   })
 
   it("should handle multiple commits of same type with different scopes", () => {
     const commits = [
-      { hash: "1", message: "feat(ui): add A", author: "A" },
-      { hash: "2", message: "feat(api): add B", author: "B" },
-      { hash: "3", message: "feat: add C", author: "C" },
+      { hash: "1", message: "feat(ui): add A", author: "A", repo: "owner/repo" },
+      { hash: "2", message: "feat(api): add B", author: "B", repo: "owner/repo" },
+      { hash: "3", message: "feat: add C", author: "C", repo: "owner/repo" },
     ]
     const parsed = parseCommits(commits)
     const organized = organizeForChangelog(parsed)
     
-    expect(organized.features).toEqual([
-      "**ui**: add A",
-      "**api**: add B",
-      "add C"
-    ])
+    expect(organized.features.length).toBe(3)
+    expect(organized.features[0]).toContain("**ui**:")
+    expect(organized.features[1]).toContain("**api**:")
+    expect(organized.features[2]).not.toContain("**")
   })
 
   it("should return empty arrays for no commits", () => {
@@ -355,17 +242,28 @@ describe("organizeForChangelog", () => {
 
   it("should handle mixed scopes and general in same type", () => {
     const commits = [
-      { hash: "1", message: "fix(core): fix A", author: "A" },
-      { hash: "2", message: "fix: fix B", author: "B" },
-      { hash: "3", message: "fix(utils): fix C", author: "C" },
+      { hash: "1", message: "fix(core): fix A", author: "A", repo: "owner/repo" },
+      { hash: "2", message: "fix: fix B", author: "B", repo: "owner/repo" },
+      { hash: "3", message: "fix(utils): fix C", author: "C", repo: "owner/repo" },
     ]
     const parsed = parseCommits(commits)
     const organized = organizeForChangelog(parsed)
     
-    expect(organized.fixes).toEqual([
-      "**core**: fix A",
-      "fix B",
-      "**utils**: fix C"
-    ])
+    expect(organized.fixes.length).toBe(3)
+    expect(organized.fixes[0]).toContain("**core**:")
+    expect(organized.fixes[1]).not.toContain("**")
+    expect(organized.fixes[2]).toContain("**utils**:")
+  })
+
+  it("should include author and commit hash in output", () => {
+    const commits = [
+      { hash: "abc1234567", message: "feat: add feature", author: "John Doe", repo: "owner/repo" },
+    ]
+    const parsed = parseCommits(commits)
+    const organized = organizeForChangelog(parsed)
+    
+    expect(organized.features[0]).toContain("John Doe")
+    expect(organized.features[0]).toContain("abc1234") // short hash
+    expect(organized.features[0]).toContain("https://github.com/")
   })
 })

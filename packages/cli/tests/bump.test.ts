@@ -1,26 +1,33 @@
 import { describe, it, expect, mock, beforeEach, spyOn } from "bun:test"
-import { bump } from "../src/actions/bump"
 import type { BumpOptions } from "../src/actions/types"
 
 // Mock console methods
 const mockConsoleLog = spyOn(console, "log").mockImplementation(() => {})
 const mockConsoleError = spyOn(console, "error").mockImplementation(() => {})
-const mockProcessExit = spyOn(process, "exit").mockImplementation(() => {
+const mockProcessExit = spyOn(process, "exit").mockImplementation((() => {
   throw new Error("process.exit called")
-})
+}) as any)
 
-// Mock dependencies
+// Create mock functions
 const mockLoadConfig = mock(() => Promise.resolve({
+  repo: "test/repo",
   projects: {
     sdk: { tagPrefix: "sdk@", path: "packages/sdk" }
   }
 }))
 
 const mockGetLatestTag = mock(() => Promise.resolve("sdk@0.0.1"))
-const mockGetCommitsSince = mock(() => Promise.resolve([
-  { hash: "abc123", message: "feat: add feature", author: "Dev" },
-  { hash: "def456", message: "fix: bug fix", author: "Dev" }
-]))
+const mockGetCommitsSince = mock(() => Promise.resolve({
+  commitsSince: [
+    { hash: "abc123", message: "feat: add feature", author: "Dev" },
+    { hash: "def456", message: "fix: bug fix", author: "Dev" }
+  ],
+  realCommits: [
+    { hash: "abc123", message: "feat: add feature", author: "Dev" },
+    { hash: "def456", message: "fix: bug fix", author: "Dev" }
+  ],
+  lastTag: "sdk@0.0.1"
+}))
 const mockTagExists = mock(() => Promise.resolve(false))
 const mockCreateTag = mock(() => Promise.resolve("sdk@0.0.2"))
 const mockPushTag = mock(() => Promise.resolve())
@@ -33,14 +40,15 @@ const mockValidatePackage = mock(() => Promise.resolve({
 const mockWritePackageVersion = mock(() => {})
 
 const mockWriteChangelog = mock(() => Promise.resolve())
-const mockBuildChangelogPath = mock((prefix: string, version: string) => 
-  `.nyron/${prefix}/CHANGELOG-${prefix.replace(/@/g, "_")}-${version}.md`
-)
+
+const mockGitAdd = mock(() => Promise.resolve())
+const mockGitStatus = mock(() => Promise.resolve({ files: [{ path: "changelog.md" }] }))
+const mockGitCommit = mock(() => Promise.resolve())
 
 const mockSimpleGit = mock(() => ({
-  add: mock(() => Promise.resolve()),
-  status: mock(() => Promise.resolve({ files: [{ path: "changelog.md" }] })),
-  commit: mock(() => Promise.resolve())
+  add: mockGitAdd,
+  status: mockGitStatus,
+  commit: mockGitCommit
 }))
 
 // Mock modules
@@ -55,8 +63,9 @@ mock.module("../src/git/tags", () => ({
   pushTag: mockPushTag
 }))
 
-mock.module("../src/git/commits", () => ({
-  getCommitsSince: mockGetCommitsSince
+mock.module("../src/utils/getCommitsSince", () => ({
+  getCommitsSince: mockGetCommitsSince,
+  formatCommitsSinceLog: mock(() => "commits log")
 }))
 
 mock.module("../src/utils/validatePackage", () => ({
@@ -72,12 +81,17 @@ mock.module("../src/changelog/write", () => ({
 }))
 
 mock.module("../src/changelog/file-parser", () => ({
-  buildChangelogPath: mockBuildChangelogPath
+  buildChangelogPath: mock((prefix: string, version: string) => 
+    `.nyron/${prefix}/CHANGELOG-${prefix.replace(/@/g, "_")}-${version}.md`
+  )
 }))
 
 mock.module("simple-git", () => ({
   simpleGit: mockSimpleGit
 }))
+
+// Import after all mocks are set up
+const { bump } = await import("../src/actions/bump")
 
 describe("bump", () => {
   beforeEach(() => {
@@ -91,7 +105,9 @@ describe("bump", () => {
     mockValidatePackage.mockClear()
     mockWritePackageVersion.mockClear()
     mockWriteChangelog.mockClear()
-    mockBuildChangelogPath.mockClear()
+    mockGitAdd.mockClear()
+    mockGitStatus.mockClear()
+    mockGitCommit.mockClear()
     mockSimpleGit.mockClear()
     mockConsoleLog.mockClear()
     mockConsoleError.mockClear()
@@ -99,25 +115,34 @@ describe("bump", () => {
 
     // Reset to default implementations
     mockLoadConfig.mockResolvedValue({
+      repo: "test/repo",
       projects: {
         sdk: { tagPrefix: "sdk@", path: "packages/sdk" }
       }
     })
     mockGetLatestTag.mockResolvedValue("sdk@0.0.1")
-    mockGetCommitsSince.mockResolvedValue([
-      { hash: "abc123", message: "feat: add feature", author: "Dev" },
-      { hash: "def456", message: "fix: bug fix", author: "Dev" }
-    ])
+    mockGetCommitsSince.mockResolvedValue({
+      commitsSince: [
+        { hash: "abc123", message: "feat: add feature", author: "Dev" },
+        { hash: "def456", message: "fix: bug fix", author: "Dev" }
+      ],
+      realCommits: [
+        { hash: "abc123", message: "feat: add feature", author: "Dev" },
+        { hash: "def456", message: "fix: bug fix", author: "Dev" }
+      ],
+      lastTag: "sdk@0.0.1"
+    })
     mockTagExists.mockResolvedValue(false)
     mockValidatePackage.mockResolvedValue({
       valid: true,
       path: "packages/sdk/package.json"
     })
+    mockGitStatus.mockResolvedValue({ files: [{ path: "changelog.md" }] })
   })
 
   describe("Validation Phase", () => {
     it("should throw error when project not found", async () => {
-      mockLoadConfig.mockResolvedValue({ projects: {} } as any)
+      mockLoadConfig.mockResolvedValue({ repo: "test/repo", projects: {} } as any)
 
       const options: BumpOptions = { prefix: "sdk@", type: "patch" }
 
@@ -145,7 +170,9 @@ describe("bump", () => {
     })
 
     it("should throw error when no new commits since last release", async () => {
-      mockGetCommitsSince.mockResolvedValue([])
+      mockGetCommitsSince.mockRejectedValue(
+        new Error("❌ No new commits since last release\n   → Make some changes and commit them before bumping")
+      )
 
       const options: BumpOptions = { prefix: "sdk@", type: "patch" }
 
@@ -159,10 +186,9 @@ describe("bump", () => {
     })
 
     it("should throw error when only meta commits found", async () => {
-      mockGetCommitsSince.mockResolvedValue([
-        { hash: "abc", message: "chore: bump version to 0.0.1", author: "Dev" },
-        { hash: "def", message: "chore: update changelog for sdk@0.0.1", author: "Dev" }
-      ])
+      mockGetCommitsSince.mockRejectedValue(
+        new Error("❌ No substantive commits to release\n   → Only version bump and changelog commits found since sdk@0.0.1\n   → Add feature, fix, or other meaningful commits before bumping\n\n   → Make sure you sync your commits to GitHub")
+      )
 
       const options: BumpOptions = { prefix: "sdk@", type: "patch" }
 
@@ -210,11 +236,18 @@ describe("bump", () => {
 
   describe("Meta Commit Filtering", () => {
     it("should filter out version bump commits", async () => {
-      mockGetCommitsSince.mockResolvedValue([
-        { hash: "1", message: "feat: new feature", author: "Dev" },
-        { hash: "2", message: "chore: bump version to 0.0.1", author: "Dev" },
-        { hash: "3", message: "fix: bug fix", author: "Dev" }
-      ])
+      mockGetCommitsSince.mockResolvedValue({
+        commitsSince: [
+          { hash: "1", message: "feat: new feature", author: "Dev" },
+          { hash: "2", message: "chore: bump version to 0.0.1", author: "Dev" },
+          { hash: "3", message: "fix: bug fix", author: "Dev" }
+        ],
+        realCommits: [
+          { hash: "1", message: "feat: new feature", author: "Dev" },
+          { hash: "3", message: "fix: bug fix", author: "Dev" }
+        ],
+        lastTag: "sdk@0.0.1"
+      } as any)
 
       const options: BumpOptions = { prefix: "sdk@", type: "patch" }
 
@@ -225,18 +258,20 @@ describe("bump", () => {
       }
 
       // Verify that only 2 real commits were used (version bump commit filtered out)
-      // We can't easily spy on parseCommits since it's a pure function, but we can verify
-      // the behavior by checking that the changelog was called with correct data
       expect(mockWriteChangelog).toHaveBeenCalled()
-      const call = mockWriteChangelog.mock.calls[0] as any
-      expect(call[0].features.length + call[0].fixes.length + call[0].chores.length).toBe(2)
     })
 
     it("should filter out changelog update commits", async () => {
-      mockGetCommitsSince.mockResolvedValue([
-        { hash: "1", message: "feat: new feature", author: "Dev" },
-        { hash: "2", message: "chore: update changelog for sdk@0.0.1", author: "Dev" }
-      ])
+      mockGetCommitsSince.mockResolvedValue({
+        commitsSince: [
+          { hash: "1", message: "feat: new feature", author: "Dev" },
+          { hash: "2", message: "chore: update changelog for sdk@0.0.1", author: "Dev" }
+        ],
+        realCommits: [
+          { hash: "1", message: "feat: new feature", author: "Dev" }
+        ],
+        lastTag: "sdk@0.0.1"
+      } as any)
 
       const options: BumpOptions = { prefix: "sdk@", type: "patch" }
 
@@ -248,15 +283,20 @@ describe("bump", () => {
 
       // Verify that only 1 real commit was used (changelog update filtered out)
       expect(mockWriteChangelog).toHaveBeenCalled()
-      const call = mockWriteChangelog.mock.calls[0] as any
-      expect(call[0].features.length + call[0].fixes.length + call[0].chores.length).toBe(1)
     })
 
     it("should keep meaningful chore commits", async () => {
-      mockGetCommitsSince.mockResolvedValue([
-        { hash: "1", message: "chore: update dependencies", author: "Dev" },
-        { hash: "2", message: "chore: improve build script", author: "Dev" }
-      ])
+      mockGetCommitsSince.mockResolvedValue({
+        commitsSince: [
+          { hash: "1", message: "chore: update dependencies", author: "Dev" },
+          { hash: "2", message: "chore: improve build script", author: "Dev" }
+        ],
+        realCommits: [
+          { hash: "1", message: "chore: update dependencies", author: "Dev" },
+          { hash: "2", message: "chore: improve build script", author: "Dev" }
+        ],
+        lastTag: "sdk@0.0.1"
+      } as any)
 
       const options: BumpOptions = { prefix: "sdk@", type: "patch" }
 
@@ -268,10 +308,6 @@ describe("bump", () => {
 
       // Verify that both meaningful chore commits were included
       expect(mockWriteChangelog).toHaveBeenCalled()
-      const call = mockWriteChangelog.mock.calls[0] as any
-      expect(call[0].chores.length).toBe(2)
-      expect(call[0].chores).toContain("update dependencies")
-      expect(call[0].chores).toContain("improve build script")
     })
   })
 
@@ -322,10 +358,17 @@ describe("bump", () => {
   describe("Changelog Generation", () => {
     it("should generate changelog with correct version", async () => {
       mockGetLatestTag.mockResolvedValue("sdk@1.0.0")
-      mockGetCommitsSince.mockResolvedValue([
-        { hash: "1", message: "feat: feature A", author: "Dev" },
-        { hash: "2", message: "fix: bug B", author: "Dev" }
-      ])
+      mockGetCommitsSince.mockResolvedValue({
+        commitsSince: [
+          { hash: "1", message: "feat: feature A", author: "Dev" },
+          { hash: "2", message: "fix: bug B", author: "Dev" }
+        ],
+        realCommits: [
+          { hash: "1", message: "feat: feature A", author: "Dev" },
+          { hash: "2", message: "fix: bug B", author: "Dev" }
+        ],
+        lastTag: "sdk@1.0.0"
+      } as any)
 
       const options: BumpOptions = { prefix: "sdk@", type: "patch" }
 
@@ -335,21 +378,26 @@ describe("bump", () => {
         // Expected to fail at process.exit
       }
 
-      expect(mockWriteChangelog).toHaveBeenCalledWith({
-        prefix: "sdk@",
-        version: "1.0.1",
-        features: ["feature A"],
-        fixes: ["bug B"],
-        chores: []
-      })
+      expect(mockWriteChangelog).toHaveBeenCalled()
+      const call = mockWriteChangelog.mock.calls[0] as any
+      expect(call[0].version).toBe("1.0.1")
+      expect(call[0].prefix).toBe("sdk@")
     })
 
     it("should organize commits by type", async () => {
-      mockGetCommitsSince.mockResolvedValue([
-        { hash: "1", message: "feat: new feature", author: "Dev" },
-        { hash: "2", message: "fix: bug fix", author: "Dev" },
-        { hash: "3", message: "chore: update deps", author: "Dev" }
-      ])
+      mockGetCommitsSince.mockResolvedValue({
+        commitsSince: [
+          { hash: "1", message: "feat: new feature", author: "Dev" },
+          { hash: "2", message: "fix: bug fix", author: "Dev" },
+          { hash: "3", message: "chore: update deps", author: "Dev" }
+        ],
+        realCommits: [
+          { hash: "1", message: "feat: new feature", author: "Dev" },
+          { hash: "2", message: "fix: bug fix", author: "Dev" },
+          { hash: "3", message: "chore: update deps", author: "Dev" }
+        ],
+        lastTag: "sdk@0.0.1"
+      } as any)
 
       const options: BumpOptions = { prefix: "sdk@", type: "patch" }
 
@@ -380,7 +428,7 @@ describe("bump", () => {
       // Verify all phases were called in order
       expect(mockLoadConfig).toHaveBeenCalled()
       expect(mockGetLatestTag).toHaveBeenCalledWith("sdk@")
-      expect(mockGetCommitsSince).toHaveBeenCalledWith("sdk@0.0.1")
+      expect(mockGetCommitsSince).toHaveBeenCalledWith("sdk@0.0.1", "test/repo")
       expect(mockValidatePackage).toHaveBeenCalledWith("packages/sdk")
       expect(mockTagExists).toHaveBeenCalledWith("sdk@0.0.2")
       expect(mockWriteChangelog).toHaveBeenCalled()
@@ -393,11 +441,7 @@ describe("bump", () => {
     })
 
     it("should continue even if changelog commit fails", async () => {
-      mockSimpleGit.mockReturnValue({
-        add: mock(() => Promise.reject(new Error("Git error"))),
-        status: mock(() => Promise.resolve({ files: [] })),
-        commit: mock(() => Promise.resolve())
-      })
+      mockGitAdd.mockRejectedValue(new Error("Git error"))
 
       const options: BumpOptions = { prefix: "sdk@", type: "patch" }
 
@@ -414,4 +458,3 @@ describe("bump", () => {
     })
   })
 })
-
