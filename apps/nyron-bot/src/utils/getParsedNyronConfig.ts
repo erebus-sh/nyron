@@ -1,4 +1,5 @@
-import { type NyronConfig, parseConfigFromString } from "@nyron/cli/config";
+import { parseConfigFromString } from "@nyron/cli/config/parser";
+import { NyronConfig } from "@nyron/cli/config/types";
 import { Context } from "probot";
 
 /**
@@ -76,9 +77,28 @@ export async function getParsedNyronConfig(
   }
 
   // Step 3: Parse and validate the configuration content
-  // The parseConfigFromString function handles base64 decoding, TypeScript compilation,
-  // validation, and transformation of the configuration file into a usable JavaScript object
-  const config = await parseConfigFromString(nyronConfig.data.content);
+  // Ensure the content is base64-encoded before passing to the parser for consistent behavior
+  let configContent = nyronConfig.data.content;
+  // Check if it's already base64 (simple heuristic: valid base64 and decodes to something plausible)
+  function isBase64(str: string) {
+    // Base64 strings are typically longer, and only contain A-Z, a-z, 0-9, +, /, =
+    // This is a loose check, not cryptographically strict
+    if (!/^[A-Za-z0-9+/=\r\n]+$/.test(str)) return false;
+    try {
+      // Try decoding and see if it doesn't throw
+      const decoded = Buffer.from(str, "base64").toString("utf-8");
+      // If decoding and re-encoding matches (ignoring padding), it's likely base64
+      return Buffer.from(decoded, "utf-8").toString("base64").replace(/=+$/, "") === str.replace(/=+$/, "");
+    } catch {
+      return false;
+    }
+  }
+
+  if (!isBase64(configContent)) {
+    configContent = Buffer.from(configContent, "utf-8").toString("base64");
+  }
+
+  const config = await parseConfigFromString(configContent);
   
   return config;
 }

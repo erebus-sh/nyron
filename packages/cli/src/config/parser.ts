@@ -1,5 +1,8 @@
 import { pathToFileURL } from "url"
 import { resolve } from "path"
+import { tmpdir } from "os"
+import { writeFile, unlink } from "fs/promises"
+import { join } from "path"
 import type { NyronConfig } from "./types"
 import { validateConfig } from "./validator"
 
@@ -24,8 +27,9 @@ import { validateConfig } from "./validator"
  * ```
  */
 export async function parseConfigFromString(content: string): Promise<NyronConfig> {
+  let tempFilePath: string | null = null
+  
   try {
-    // For base64 encoded content (GitHub API)
     let decoded = content
     try {
       decoded = Buffer.from(content, "base64").toString("utf-8")
@@ -34,22 +38,53 @@ export async function parseConfigFromString(content: string): Promise<NyronConfi
       decoded = content
     }
 
-    // Create a temporary data URL
-    const dataUrl = `data:text/javascript;charset=utf-8,${encodeURIComponent(decoded)}`
+    // Strategy 1: Try to strip imports and use a simpler approach
+    // Remove the import statement and replace defineConfig with an identity function
+    let processedContent = decoded
+      .replace(/import\s+{[^}]*}\s+from\s+['"]@nyron\/cli\/config['"]\s*;?\s*/g, '')
+      .replace(/import\s+\*\s+as\s+\w+\s+from\s+['"]@nyron\/cli\/config['"]\s*;?\s*/g, '')
+      .replace(/import\s+['"]@nyron\/cli\/config['"]\s*;?\s*/g, '')
     
-    // Import the module
-    const module = await import(dataUrl)
-    const config = module.default || module
+    // Add a mock defineConfig at the top
+    processedContent = `const defineConfig = (config) => config;\n${processedContent}`
+    
+    try {
+      // Try data URL approach with processed content
+      const dataUrl = `data:text/javascript;charset=utf-8,${encodeURIComponent(processedContent)}`
+      const module = await import(dataUrl)
+      const config = module.default || module
+      validateConfig(config)
+      return config
+    } catch (dataUrlError) {
+      // Strategy 2: Fallback to temporary file if data URL fails
+      // This handles cases where there might be other imports or complex module resolution
+      const tempDir = tmpdir()
+      tempFilePath = join(tempDir, `nyron-config-${Date.now()}-${Math.random().toString(36).slice(2)}.mjs`)
+      
+      await writeFile(tempFilePath, processedContent, 'utf-8')
+      
+      const fileUrl = pathToFileURL(tempFilePath)
+      const module = await import(fileUrl.href)
+      const config = module.default || module
 
-    // Validate
-    validateConfig(config)
-    return config
+      validateConfig(config)
+      return config
+    }
   } catch (error) {
     throw new Error(
       `Failed to parse configuration from string: ${
         error instanceof Error ? error.message : String(error)
       }`
     )
+  } finally {
+    // Clean up temporary file if it was created
+    if (tempFilePath) {
+      try {
+        await unlink(tempFilePath)
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
   }
 }
 

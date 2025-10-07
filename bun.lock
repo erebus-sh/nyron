@@ -37,7 +37,7 @@
       "name": "nyron-bot",
       "version": "1.0.0",
       "dependencies": {
-        "@nyron/cli": "^0.4.5",
+        "@nyron/cli": "^0.4.6",
         "probot": "^13.4.5",
       },
       "devDependencies": {
@@ -50,7 +50,7 @@
     },
     "packages/cli": {
       "name": "@nyron/cli",
-      "version": "0.4.5",
+      "version": "0.4.6",
       "bin": {
         "nyron": "./dist/index.js",
       },
@@ -2109,6 +2109,8 @@
 
     "next/postcss": ["postcss@8.4.31", "", { "dependencies": { "nanoid": "^3.3.6", "picocolors": "^1.0.0", "source-map-js": "^1.0.2" } }, "sha512-PS08Iboia9mts/2ygV3eLpY5ghnUcfLV/EXTOW1E2qYxJKGGBUtNjN76FYHnMs36RmARn41bC0AZmn+rR0OVpQ=="],
 
+    "nyron-bot/@nyron/cli": ["@nyron/cli@0.4.6", "", { "dependencies": { "commander": "^14.0.1", "cosmiconfig": "^9.0.0", "dotenv": "^17.2.3", "handlebars": "^4.7.8", "octokit": "^5.0.3", "probot": "^14.0.6", "semver": "^7.7.2", "simple-git": "^3.28.0" }, "peerDependencies": { "typescript": "^5" }, "bin": { "nyron": "dist/index.js" } }, "sha512-kCkQ+n0ar7TH8eRAYt+quhIvONj3e3pxYT/Cy1q8Fi40X4k0P0l+eJeN0P/RtfFt9tMg3+3a090y258lY+3sZg=="],
+
     "nyron-bot/@types/node": ["@types/node@20.19.19", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-pb1Uqj5WJP7wrcbLU7Ru4QtA0+3kAXrkutGiD26wUKzSMgNNaPARTUDQmElUXp64kh3cWdou3Q0C7qwwxqSFmg=="],
 
     "nyron-bot/probot": ["probot@13.4.7", "", { "dependencies": { "@octokit/core": "^5.2.2", "@octokit/plugin-enterprise-compatibility": "^4.0.1", "@octokit/plugin-paginate-rest": "11.4.4-cjs.2", "@octokit/plugin-rest-endpoint-methods": "13.3.2-cjs.1", "@octokit/plugin-retry": "^6.0.1", "@octokit/plugin-throttling": "^8.1.3", "@octokit/request": "^8.4.1", "@octokit/types": "^12.3.0", "@octokit/webhooks": "^12.3.2", "@probot/get-private-key": "^1.1.2", "@probot/octokit-plugin-config": "^2.0.1", "@probot/pino": "^3.0.0", "@types/express": "^5.0.1", "bottleneck": "^2.19.5", "commander": "^12.0.0", "deepmerge": "^4.3.1", "dotenv": "^16.3.1", "express": "^5.0.0", "ioredis": "^5.3.2", "js-yaml": "^4.1.0", "lru-cache": "npm:@wolfy1339/lru-cache@^11.0.2-patch.1", "octokit-auth-probot": "^2.0.2", "pino": "^9.0.0", "pino-http": "^10.0.0", "pkg-conf": "^3.1.0", "update-dotenv": "^1.1.1" }, "bin": { "probot": "bin/probot.js" } }, "sha512-/NjxDJ/c/TXLeNs0TRpmYQ825sDQFc/BFJl2vgId2GX/rwS8HcD1dUWpMowvugEWcA6nCgMGJPNSFwKv5B4TZw=="],
@@ -2174,6 +2176,8 @@
     "@typescript-eslint/typescript-estree/fast-glob/glob-parent": ["glob-parent@5.1.2", "", { "dependencies": { "is-glob": "^4.0.1" } }, "sha512-AOIgSQCepiJYwP3ARnGx+5VnTu2HBYdzbGP45eLw1vr3zB3vZLeyed1sC9hnbcOc9/SrMyM5RPQrkGz4aS9Zow=="],
 
     "@typescript-eslint/typescript-estree/minimatch/brace-expansion": ["brace-expansion@2.0.2", "", { "dependencies": { "balanced-match": "^1.0.0" } }, "sha512-Jt0vHyM+jmUBqojB7E1NIYadt0vI0Qxjxd2TErW94wDz+E2LAm5vKMXXwg6ZZBTHPuUlDgQHKXvjGBdfcF1ZDQ=="],
+
+    "nyron-bot/@nyron/cli/probot": ["probot@14.0.6", "", { "dependencies": { "@octokit/core": "^7.0.3", "@octokit/plugin-enterprise-compatibility": "^6.0.1", "@octokit/plugin-paginate-rest": "^13.1.1", "@octokit/plugin-rest-endpoint-methods": "^16.0.0", "@octokit/plugin-retry": "^8.0.1", "@octokit/plugin-throttling": "^11.0.1", "@octokit/request": "^10.0.3", "@octokit/types": "^15.0.0", "@octokit/webhooks": "^14.1.2", "@probot/get-private-key": "^2.1.1", "@probot/octokit-plugin-config": "^4.0.0", "@probot/pino": "^5.0.1", "bottleneck": "^2.19.5", "deepmerge": "^4.3.1", "dotenv": "^17.0.0", "import-meta-resolve": "^4.1.0", "js-yaml": "^4.1.0", "npx-import-light": "^1.0.0", "octokit-auth-probot": "^4.0.1", "package-config": "^5.0.0", "pino": "^10.0.0", "pino-http": "^11.0.0", "toad-cache": "^3.7.0" }, "bin": { "probot": "bin/probot.js" } }, "sha512-/BBM+1NdniXojvdTEKCxE+nS21DoBRRyhuDV2MZpG0ZocRuKKI1vrzySqO+nz6/XyWuWQw5E70DU8jAkVgACQg=="],
 
     "nyron-bot/@types/node/undici-types": ["undici-types@6.21.0", "", {}, "sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ=="],
 
@@ -2267,6 +2271,8 @@
 
     "vite/esbuild/@esbuild/win32-x64": ["@esbuild/win32-x64@0.21.5", "", { "os": "win32", "cpu": "x64" }, "sha512-tQd/1efJuzPC6rCFwEvLtci/xNFcTZknmXs98FYDfGE4wP9ClFV98nyKrzJKVPMhdDnjzLhdUyMX4PsQAPjwIw=="],
 
+    "nyron-bot/@nyron/cli/probot/@octokit/types": ["@octokit/types@15.0.0", "", { "dependencies": { "@octokit/openapi-types": "^26.0.0" } }, "sha512-8o6yDfmoGJUIeR9OfYU0/TUJTnMPG2r68+1yEdUeG2Fdqpj8Qetg0ziKIgcBm0RW/j29H41WP37CYCEhp6GoHQ=="],
+
     "nyron-bot/probot/@octokit/core/@octokit/auth-token": ["@octokit/auth-token@4.0.0", "", {}, "sha512-tY/msAuJo6ARbK6SPIxZrPBms3xPbfwBrulZe0Wtr/DIY9lje2HeV1uoebShn6mx7SjCHif6EjMvoREj+gZ+SA=="],
 
     "nyron-bot/probot/@octokit/core/@octokit/graphql": ["@octokit/graphql@7.1.1", "", { "dependencies": { "@octokit/request": "^8.4.1", "@octokit/types": "^13.0.0", "universal-user-agent": "^6.0.0" } }, "sha512-3mkDltSfcDUoa176nlGoA32RGjeWjl3K7F/BwHwRMJUW/IteSa4bnSV8p2ThNkcIcZU2umkZWxwETSSCJf2Q7g=="],
@@ -2312,6 +2318,8 @@
     "pkg-conf/find-up/locate-path/p-locate": ["p-locate@3.0.0", "", { "dependencies": { "p-limit": "^2.0.0" } }, "sha512-x+12w/To+4GFfgJhBEpiDcLozRJGegY+Ei7/z0tSLkMmxGZNybVMSfWj9aJn8Z5Fc7dBUNJOOVgPv2H7IwulSQ=="],
 
     "pkg-conf/find-up/locate-path/path-exists": ["path-exists@3.0.0", "", {}, "sha512-bpC7GYwiDYQ4wYLe+FA8lhRjhQCMcQGuSgGGqDkg/QerRWw9CmGRT0iSOVRSZJ29NMLZgIzqaljJ63oaL4NIJQ=="],
+
+    "nyron-bot/@nyron/cli/probot/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@26.0.0", "", {}, "sha512-7AtcfKtpo77j7Ts73b4OWhOZHTKo/gGY8bB3bNBQz4H+GRSWqx2yvj8TXRsbdTE0eRmYmXOEY66jM7mJ7LzfsA=="],
 
     "nyron-bot/probot/@octokit/core/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@24.2.0", "", {}, "sha512-9sIH3nSUttelJSXUrmGzl7QUBFul0/mB8HRYl3fOlgHbIWG+WnYDXU3v/2zMtAvuzZ/ed00Ei6on975FhBfzrg=="],
 
