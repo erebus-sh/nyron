@@ -23,9 +23,11 @@ export async function pullRequestOpened(context: Context<"pull_request">) {
       ? `Changed folders since latest tag (${latestTag}): ${diff.join(", ")}`
       : `No folder changes detected since latest tag (${latestTag}).`;
 
+    // TODO: this is in a for loop, and will spam the issue with comments
+    //       bundling them all into one beautiful comment later
     await context.octokit.rest.issues.createComment({
       owner: pr.owner,
-      repo: config.repo,
+      repo: pr.repo,
       issue_number: pr.number,
       body: message,
     });
