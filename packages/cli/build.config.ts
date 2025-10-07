@@ -17,6 +17,13 @@ export default defineConfig({
     "github/pull-requests": "./src/github/pull-requests.ts",
     "github/repo-parser": "./src/github/repo-parser.ts",
     "github/types": "./src/github/types.ts",
+    "github/tags": "./src/github/tags.ts",
+    // Git helpers
+    "git/commits-parser": "./src/git/commits-parser.ts",
+    "git/diff": "./src/git/diff.ts",
+    "git/tag-parser": "./src/git/tag-parser.ts",
+    "git/tags": "./src/git/tags.ts",
+    "git/types": "./src/git/types.ts",
   },
   format: ["esm", "cjs"],
   dts: true,

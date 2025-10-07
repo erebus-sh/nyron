@@ -1,6 +1,6 @@
 {
   "name": "@nyron/cli",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "type": "module",
   "bin": {
     "nyron": "./dist/index.js"
@@ -92,6 +92,36 @@
       "types": "./dist/github/types.d.ts",
       "import": "./dist/github/types.js",
       "require": "./dist/github/types.cjs"
+    },
+    "./github/tags": {
+      "types": "./dist/github/tags.d.ts",
+      "import": "./dist/github/tags.js",
+      "require": "./dist/github/tags.cjs"
+    },
+    "./git/commits-parser": {
+      "types": "./dist/git/commits-parser.d.ts",
+      "import": "./dist/git/commits-parser.js",
+      "require": "./dist/git/commits-parser.cjs"
+    },
+    "./git/diff": {
+      "types": "./dist/git/diff.d.ts",
+      "import": "./dist/git/diff.js",
+      "require": "./dist/git/diff.cjs"
+    },
+    "./git/tag-parser": {
+      "types": "./dist/git/tag-parser.d.ts",
+      "import": "./dist/git/tag-parser.js",
+      "require": "./dist/git/tag-parser.cjs"
+    },
+    "./git/tags": {
+      "types": "./dist/git/tags.d.ts",
+      "import": "./dist/git/tags.js",
+      "require": "./dist/git/tags.cjs"
+    },
+    "./git/types": {
+      "types": "./dist/git/types.d.ts",
+      "import": "./dist/git/types.js",
+      "require": "./dist/git/types.cjs"
     }
   },
   "description": "Nyron CLI — smarter multi-package versioning powered by Bun",
