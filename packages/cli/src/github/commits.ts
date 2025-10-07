@@ -4,31 +4,12 @@
 // etc...
 
 import type { CommitDiff } from "../git/types"
-import { Octokit } from "octokit"
 import { parseRepo } from "./repo-parser"
+import { resolveOctokit } from "./types"
 
-if (!process.env['GITHUB_TOKEN']) {
-  throw new Error(
-    [
-      '❌ GitHub authentication failed: GITHUB_TOKEN is not set.',
-      '',
-      'To fix this, set the GITHUB_TOKEN environment variable with a valid GitHub personal access token.',
-      '',
-      'Example:',
-      '  export GITHUB_TOKEN=ghp_xxxYourTokenHerexxx',
-      '',
-      'You can create a token at: https://github.com/settings/tokens',
-      'Required scopes: "repo" (for private repos) or "public_repo" (for public repos).',
-      '',
-      'Tip: You can also add GITHUB_TOKEN to your .env file for local development.'
-    ].join('\n')
-  )
-}
-
-const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] })
-
-export async function getCommitsSince(tag: string, repo: string): Promise<CommitDiff[]> {
+export async function getCommitsSince(tag: string, repo: string, clientOrContext?: unknown): Promise<CommitDiff[]> {
   const { owner, repo: repoName } = parseRepo(repo)
+  const octokit = resolveOctokit(clientOrContext as any)
   
   const { data: comparison } = await octokit.rest.repos.compareCommits({
     owner,
@@ -53,8 +34,9 @@ export async function getCommitsSince(tag: string, repo: string): Promise<Commit
   )
 }
 
-export async function getCommitsBetween(fromTag: string, toTag: string, repo: string): Promise<CommitDiff[]> {
+export async function getCommitsBetween(fromTag: string, toTag: string, repo: string, clientOrContext?: unknown): Promise<CommitDiff[]> {
   const { owner, repo: repoName } = parseRepo(repo)
+  const octokit = resolveOctokit(clientOrContext as any)
   
   const { data: comparison } = await octokit.rest.repos.compareCommits({
     owner,

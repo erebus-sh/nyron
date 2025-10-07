@@ -1,9 +1,8 @@
-import { Octokit } from "octokit"
 import type { Repo } from "./types"
+import { resolveOctokit } from "./types"
 
-const octokit = new Octokit({ auth: process.env['GITHUB_TOKEN'] })
-
-export async function getPRsBetweenTags(repo: Repo, fromTag: string, toTag: string) {
+export async function getPRsBetweenTags(repo: Repo, fromTag: string, toTag: string, clientOrContext?: unknown) {
+  const octokit = resolveOctokit(clientOrContext as any)
   // Step 1: get commits for tags
   const [fromCommit, toCommit] = await Promise.all([
     octokit.rest.repos.getCommit({ owner: repo.owner, repo: repo.repo, ref: fromTag }),

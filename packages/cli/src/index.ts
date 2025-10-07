@@ -14,7 +14,7 @@ dotenv.config({
 program
   .name("nyron")
   .description("Nyron CLI — smart multi-package versioning and changelog management")
-  .version("0.4.0")
+  .version("0.4.3")
 
 // -----------------------------
 // bump

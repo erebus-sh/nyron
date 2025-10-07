@@ -11,6 +11,12 @@ export default defineConfig({
     "actions/init": "./src/actions/init.ts",
     "actions/tag": "./src/actions/tag.ts",
     "actions/types": "./src/actions/types.ts",
+    // GitHub helpers
+    "github/commits": "./src/github/commits.ts",
+    "github/diff": "./src/github/diff.ts",
+    "github/pull-requests": "./src/github/pull-requests.ts",
+    "github/repo-parser": "./src/github/repo-parser.ts",
+    "github/types": "./src/github/types.ts",
   },
   format: ["esm", "cjs"],
   dts: true,
