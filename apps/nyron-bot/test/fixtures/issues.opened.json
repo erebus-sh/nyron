@@ -3,13 +3,13 @@
   "issue": {
     "number": 1,
     "user": {
-      "login": "hiimbex"
+      "login": "v0id-user"
     }
   },
   "repository": {
-    "name": "testing-things",
+    "name": "nyron-test-repo",
     "owner": {
-      "login": "hiimbex"
+      "login": "v0id-user"
     }
   },
   "installation": {

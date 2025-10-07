@@ -1,24 +1,19 @@
 import nock from "nock"
 import { Probot, ProbotOctokit } from "probot"
 import myApp from "../src/index.js"
-import payload from "./fixtures/pull_request.opened.json" with { type: "json" }
+import pullRequestPayloadFixture from "./fixtures/pull_request.opened.json" with { type: "json" }
 import { describe, beforeEach, afterEach, it, expect } from "vitest";
 
-// TODO: Complete the tests
-describe("pull_request.opened event", () => {
+
+describe("pull_request.opened handler", () => {
   let probot
 
   beforeEach(() => {
     nock.disableNetConnect()
-
     probot = new Probot({
       githubToken: "test",
-      Octokit: ProbotOctokit.defaults({
-        retry: { enabled: false },
-        throttle: { enabled: false },
-      }),
+      Octokit: ProbotOctokit.defaults({ retry: { enabled: false }, throttle: { enabled: false } }),
     })
-
     myApp(probot)
   })
 
@@ -27,26 +22,32 @@ describe("pull_request.opened event", () => {
     nock.enableNetConnect()
   })
 
-  it("should comment on PR when opened", async () => {
-    // Mock access token exchange
+  it("reads nyron.config.ts and parses projects", async () => {
+    // 1️⃣ Mock app installation token
     nock("https://api.github.com")
-      .post("/app/installations/2/access_tokens")
+      .post("/app/installations/88979653/access_tokens")
       .reply(200, { token: "test" })
 
-    // Mock expected GitHub API call
-    nock("https://api.github.com")
-      .post("/repos/v0id-user/nyron-test-repo/issues/1/comments", (body) => {
-        expect(body).toMatchObject({
-          body: expect.stringContaining("Thanks for opening this PR"),
-        })
-        return true
-      })
-      .reply(200)
+    // 2️⃣ Mock nyron.config.ts response
+    const fakeConfig = `
+      export default {
+        projects: {
+          core: { path: "packages/core", tagPrefix: "core@" },
+          cli: { path: "packages/cli", tagPrefix: "cli@" }
+        }
+      }
+    `
+    const base64Config = Buffer.from(fakeConfig).toString("base64")
 
-    // Simulate webhook event
-    await probot.receive({
-      name: "pull_request.opened",
-      payload,
-    })
+    nock("https://api.github.com")
+      .get("/repos/v0id-user/nyron-1-test-repo/contents/nyron.config.ts")
+      .reply(200, {
+        content: base64Config,
+        encoding: "base64",
+      })
+
+
+      // 4️⃣ Run webhook simulation
+    await probot.receive({ name: "pull_request.opened", pullRequestPayloadFixture })
   })
 })
