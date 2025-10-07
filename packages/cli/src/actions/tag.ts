@@ -1,9 +1,9 @@
 import { buildTag } from "../git/tag-parser"
 import { loadConfig } from "../core/loadConfig"
-import type { TagOptions } from "./types"
+import type { TagOptions, TagResult } from "./types"
 import { getTag, createTag, pushTag } from "../git/tags"
 
-export async function tag(options: TagOptions) {
+export async function tag(options: TagOptions): Promise<TagResult> {
   const config = await loadConfig()
   const tagName = buildTag(options.prefix, options.version)
 
@@ -12,7 +12,7 @@ export async function tag(options: TagOptions) {
   if (existing) {
     console.log(`⚠️  Tag already exists: ${tagName}`)
     console.log(`   → This version has already been tagged`)
-    return
+    return { created: false, pushed: false, tagName, alreadyExists: true }
   }
 
   // 2. Create the tag
@@ -28,8 +28,10 @@ export async function tag(options: TagOptions) {
   }
 
   // 3. Push the tag to origin (optional, but smart)
+  let pushed = false
   try {
     await pushTag(tagName)
+    pushed = true
     console.log(`✅ Tag created and pushed: ${tagName}`)
   } catch {
     console.log(`⚠️  Tag created locally but failed to push`)
@@ -42,8 +44,10 @@ export async function tag(options: TagOptions) {
   )
   if (project) {
     console.log(`📦 Associated with project: ${project[0]}`)
+    return { created: true, pushed, tagName, alreadyExists: false, associatedProjectName: project[0] }
   } else {
     console.log(`⚠️  No project found with prefix ${options.prefix} in nyron.config.ts`)
     console.log(`   → Consider adding this prefix to your config`)
+    return { created: true, pushed, tagName, alreadyExists: false }
   }
 }

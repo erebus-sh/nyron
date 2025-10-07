@@ -25,7 +25,7 @@
 // ------------------------------------------------------------
 
 import { loadConfig } from "../core/loadConfig"
-import { type BumpOptions } from "./types"
+import { type BumpOptions, type BumpResult } from "./types"
 import { createTag, getLatestTag, pushTag, tagExists } from "../git/tags"
 import { getCommitsSince, formatCommitsSinceLog } from "../utils/getCommitsSince"
 import { bumpVersion } from "../core/semver"
@@ -161,13 +161,13 @@ const execute = async (data: Awaited<ReturnType<typeof validate>>) => {
 // ------------------------------------------------------------
 // Main bump action
 // ------------------------------------------------------------
-export const bump = async (options: BumpOptions) => {
+export const bump = async (options: BumpOptions): Promise<BumpResult> => {
   try {
     // Phase 1: Validate and compute new version
     const data = await validate(options)
     
     // Phase 2: Generate changelog for the NEW version
-    await generateChangelogForNewVersion(data)
+    const changelog = await generateChangelogForNewVersion(data)
     
     // Phase 3: Commit the changelog
     try {
@@ -180,8 +180,20 @@ export const bump = async (options: BumpOptions) => {
     
     // Phase 4: Create tag, push, and update package.json
     await execute(data)
+    return {
+      success: true,
+      prefix: data.tagPrefix,
+      newVersion: data.newVersion,
+      tag: data.fullTag,
+      packagePath: data.packagePath,
+      changelog,
+    }
   } catch (error) {
     console.error(`\n❌ Bump failed:\n${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    return {
+      success: false,
+      prefix: options.prefix,
+      error: error instanceof Error ? error.message : String(error),
+    }
   }
 }
