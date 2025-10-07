@@ -25,7 +25,11 @@ program
   .description("Bump project version and generate changelog")
   .requiredOption("-t, --type <type>", `Bump type: ${BumpType.join(", ")}`)
   .requiredOption("-x, --prefix <prefix>", "Tag prefix from config")
-  .action(bump)
+  .action(async (options) => {
+   await bump(options)
+
+    return
+  })
 
 // -----------------------------
 // diff
@@ -34,7 +38,10 @@ program
   .command("diff")
   .description("Show commits since last release for all projects")
   .option("-f, --prefix <prefix>", "Filter by tag prefix")
-  .action(diff)
+  .action(async (options) => {
+    await diff(options)
+    return
+  })
 
 // -----------------------------
 // init
@@ -44,7 +51,10 @@ program
   .description("Initialize nyron.config.ts in current directory")
   .option("-f, --force", "Overwrite existing config")
   .option("--json", "Generate JSON config instead of TypeScript")
-  .action(init)
+  .action(async (options) => {
+    await init(options)
+    return
+  })
 
 // -----------------------------
 // tag
@@ -54,7 +64,10 @@ program
   .description("Create and push a new version tag")
   .requiredOption("-p, --prefix <prefix>", "Tag prefix (e.g., @my-pkg/sdk@)")
   .requiredOption("-v, --version <version>", "Semantic version (e.g., 1.0.0)")
-  .action(tag)
+  .action(async (options) => {
+    await tag(options)
+    return
+  })
 
 // -----------------------------
 // default help

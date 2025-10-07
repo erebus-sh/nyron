@@ -5,6 +5,12 @@ export default defineConfig({
     // Main entry point
     index: "./src/index.ts",
     "core/config": "./src/core/config.ts",
+    // Actions entry points
+    "actions/bump": "./src/actions/bump.ts",
+    "actions/diff": "./src/actions/diff.ts",
+    "actions/init": "./src/actions/init.ts",
+    "actions/tag": "./src/actions/tag.ts",
+    "actions/types": "./src/actions/types.ts",
   },
   format: ["esm", "cjs"],
   dts: true,

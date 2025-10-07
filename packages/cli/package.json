@@ -1,6 +1,6 @@
 {
   "name": "@nyron/cli",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "type": "module",
   "bin": {
     "nyron": "./dist/index.js"
@@ -40,6 +40,31 @@
       "types": "./dist/core/config.d.ts",
       "import": "./dist/core/config.js",
       "require": "./dist/core/config.cjs"
+    },
+    "./actions/bump": {
+      "types": "./dist/actions/bump.d.ts",
+      "import": "./dist/actions/bump.js",
+      "require": "./dist/actions/bump.cjs"
+    },
+    "./actions/diff": {
+      "types": "./dist/actions/diff.d.ts",
+      "import": "./dist/actions/diff.js",
+      "require": "./dist/actions/diff.cjs"
+    },
+    "./actions/init": {
+      "types": "./dist/actions/init.d.ts",
+      "import": "./dist/actions/init.js",
+      "require": "./dist/actions/init.cjs"
+    },
+    "./actions/tag": {
+      "types": "./dist/actions/tag.d.ts",
+      "import": "./dist/actions/tag.js",
+      "require": "./dist/actions/tag.cjs"
+    },
+    "./actions/types": {
+      "types": "./dist/actions/types.d.ts",
+      "import": "./dist/actions/types.js",
+      "require": "./dist/actions/types.cjs"
     }
   },
   "description": "Nyron CLI — smarter multi-package versioning powered by Bun",
