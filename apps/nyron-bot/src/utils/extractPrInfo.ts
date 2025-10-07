@@ -74,7 +74,7 @@ export function extractPrInfo(pull_request: PullRequestGithub & { [key: string]:
     // Self-triggering prevention mechanism
     // This prevents the bot from processing its own pull requests, which would
     // create infinite loops and unnecessary API calls
-    if (user.toLowerCase().includes("nyron")) {
+    if (user.toLowerCase() === "nyrony") {
         throw new Error(
             `Self-triggering prevention: PR author "${user}" appears to be a Nyron bot. Refusing to process this pull request to avoid infinite loops.`
         );
