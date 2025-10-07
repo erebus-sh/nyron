@@ -4,7 +4,13 @@ export default defineConfig({
   entry: {
     // Main entry point
     index: "./src/index.ts",
-    "core/config": "./src/core/config.ts",
+    // Config system
+    config: "./src/config/index.ts",
+    "config/types": "./src/config/types.ts",
+    "config/define": "./src/config/define.ts",
+    "config/loader": "./src/config/loader.ts",
+    "config/parser": "./src/config/parser.ts",
+    "config/validator": "./src/config/validator.ts",
     // Actions entry points
     "actions/bump": "./src/actions/bump.ts",
     "actions/diff": "./src/actions/diff.ts",
@@ -36,6 +42,7 @@ export default defineConfig({
     "octokit",
     "commander",
     "dotenv",
+    "cosmiconfig",
   ],
   sourcemap: true,
   clean: true,

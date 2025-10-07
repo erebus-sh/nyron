@@ -1,10 +1,10 @@
 import { buildTag } from "../git/tag-parser"
-import { loadConfig } from "../core/loadConfig"
+import { loadConfig } from "../config"
 import type { TagOptions, TagResult } from "./types"
 import { getTag, createTag, pushTag } from "../git/tags"
 
 export async function tag(options: TagOptions): Promise<TagResult> {
-  const config = await loadConfig()
+  const { config } = await loadConfig()
   const tagName = buildTag(options.prefix, options.version)
 
   // 1. Check if tag already exists

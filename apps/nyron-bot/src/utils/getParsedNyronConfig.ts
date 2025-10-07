@@ -1,4 +1,4 @@
-import { parseConfig } from "@nyron/cli/config";
+import { type NyronConfig, parseConfigFromString } from "@nyron/cli/config";
 import { Context } from "probot";
 
 /**
@@ -52,28 +52,33 @@ import { Context } from "probot";
  * 
  * @category Configuration Management
  */
-export async function getParsedNyronConfig(context: Context<'pull_request'>, pr: { owner: string; repo: string }) {
-    // Step 1: Retrieve the configuration file from the repository
-    // We fetch the nyron.config.ts file directly from the repository root using
-    // the GitHub API, which provides authenticated access to the repository contents
-    const nyronConfig = await context.octokit.repos.getContent({
-      owner: pr.owner,
-      repo: pr.repo,
-      path: "nyron.config.ts",
-    });
-  
-    // Step 2: Validate the retrieved content
-    // GitHub API returns different data structures depending on whether the path
-    // points to a file or directory, so we need to ensure we have valid file content
-    if (!("content" in nyronConfig.data) || typeof nyronConfig.data.content !== "string") {
-      throw new Error(
-        `Configuration file not accessible: nyron.config.ts either does not exist in the repository root or is not a valid text file. ` +
-        `Please ensure the file exists at the repository root and contains valid TypeScript configuration.`
-      );
-    }
-  
-    // Step 3: Parse and validate the configuration content
-    // The parseConfig function handles TypeScript compilation, validation, and
-    // transformation of the configuration file into a usable JavaScript object
-    return parseConfig(nyronConfig.data.content, false);
+export async function getParsedNyronConfig(
+  context: Context<'pull_request'>, 
+  pr: { owner: string; repo: string }
+): Promise<NyronConfig> {
+  // Step 1: Retrieve the configuration file from the repository
+  // We fetch the nyron.config.ts file directly from the repository root using
+  // the GitHub API, which provides authenticated access to the repository contents
+  const nyronConfig = await context.octokit.repos.getContent({
+    owner: pr.owner,
+    repo: pr.repo,
+    path: "nyron.config.ts",
+  });
+
+  // Step 2: Validate the retrieved content
+  // GitHub API returns different data structures depending on whether the path
+  // points to a file or directory, so we need to ensure we have valid file content
+  if (!("content" in nyronConfig.data) || typeof nyronConfig.data.content !== "string") {
+    throw new Error(
+      `Configuration file not accessible: nyron.config.ts either does not exist in the repository root or is not a valid text file. ` +
+      `Please ensure the file exists at the repository root and contains valid TypeScript configuration.`
+    );
   }
+
+  // Step 3: Parse and validate the configuration content
+  // The parseConfigFromString function handles base64 decoding, TypeScript compilation,
+  // validation, and transformation of the configuration file into a usable JavaScript object
+  const config = await parseConfigFromString(nyronConfig.data.content);
+  
+  return config;
+}

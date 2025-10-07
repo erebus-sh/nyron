@@ -33,7 +33,8 @@ export default defineConfig({
   },
   autoChangelog: true,
   onPushReminder: true,
-})`
+})
+`
 
   writeFileSync(filepath, sample, "utf-8")
   console.log(`✅ Created ${filename}`)

@@ -24,7 +24,7 @@
 // Phase 4: Create tag, push, and update package.json
 // ------------------------------------------------------------
 
-import { loadConfig } from "../core/loadConfig"
+import { loadConfig } from "../config"
 import { type BumpOptions, type BumpResult } from "./types"
 import { createTag, getLatestTag, pushTag, tagExists } from "../git/tags"
 import { getCommitsSince, formatCommitsSinceLog } from "../utils/getCommitsSince"
@@ -40,7 +40,7 @@ import { buildChangelogPath } from "../changelog/file-parser"
 // Phase 1: Validate (dry run)
 // ------------------------------------------------------------
 const validate = async (options: BumpOptions) => {
-  const config = await loadConfig()
+  const { config } = await loadConfig()
 
   console.log(`🔍 Validating bump for prefix: ${options.prefix}`)
 

@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "commander": "^14.0.1",
+    "cosmiconfig": "^9.0.0",
     "dotenv": "^17.2.3",
     "handlebars": "^4.7.8",
     "octokit": "^5.0.3",
@@ -38,9 +39,34 @@
   "exports": {
     "./package.json": "./package.json",
     "./config": {
-      "types": "./dist/core/config.d.ts",
-      "import": "./dist/core/config.js",
-      "require": "./dist/core/config.cjs"
+      "types": "./dist/config/index.d.ts",
+      "import": "./dist/config/index.js",
+      "require": "./dist/config/index.cjs"
+    },
+    "./config/types": {
+      "types": "./dist/config/types.d.ts",
+      "import": "./dist/config/types.js",
+      "require": "./dist/config/types.cjs"
+    },
+    "./config/define": {
+      "types": "./dist/config/define.d.ts",
+      "import": "./dist/config/define.js",
+      "require": "./dist/config/define.cjs"
+    },
+    "./config/loader": {
+      "types": "./dist/config/loader.d.ts",
+      "import": "./dist/config/loader.js",
+      "require": "./dist/config/loader.cjs"
+    },
+    "./config/parser": {
+      "types": "./dist/config/parser.d.ts",
+      "import": "./dist/config/parser.js",
+      "require": "./dist/config/parser.cjs"
+    },
+    "./config/validator": {
+      "types": "./dist/config/validator.d.ts",
+      "import": "./dist/config/validator.js",
+      "require": "./dist/config/validator.cjs"
     },
     "./actions/bump": {
       "types": "./dist/actions/bump.d.ts",
@@ -66,8 +92,7 @@
       "types": "./dist/actions/types.d.ts",
       "import": "./dist/actions/types.js",
       "require": "./dist/actions/types.cjs"
-    }
-    ,
+    },
     "./github/commits": {
       "types": "./dist/github/commits.d.ts",
       "import": "./dist/github/commits.js",

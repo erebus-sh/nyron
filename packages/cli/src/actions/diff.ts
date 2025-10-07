@@ -1,4 +1,4 @@
-import { loadConfig } from "../core/loadConfig"
+import { loadConfig } from "../config"
 import { getLatestTag } from "../git/tags"
 import { getCommitsSince } from "../github/commits"
 import type { DiffOptions, DiffResult, ProjectDiffResult } from "./types"
@@ -6,7 +6,7 @@ import type { DiffOptions, DiffResult, ProjectDiffResult } from "./types"
 export async function diff(options: DiffOptions): Promise<DiffResult> {
   console.log("🔍 Analyzing changes since last release...\n")
 
-  const config = await loadConfig()
+  const { config } = await loadConfig()
   const projects = Object.entries(config.projects)
   
   if (projects.length === 0) {
