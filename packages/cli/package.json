@@ -151,7 +151,7 @@
   },
   "description": "Nyron CLI — smarter multi-package versioning powered by Bun",
   "keywords": ["nyron", "cli", "bun", "versioning", "monorepo"],
-  "license": "MIT",
+  "license": "ISC",
   "repository": {
     "type": "git",
     "url": "https://github.com/erebus-sh/nyron"
