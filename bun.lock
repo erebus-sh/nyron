@@ -37,7 +37,7 @@
       "name": "nyron-bot",
       "version": "1.0.0",
       "dependencies": {
-        "@nyron/cli": "^0.4.8",
+        "@nyron/cli": "^0.5.0",
         "probot": "^13.4.5",
       },
       "devDependencies": {
@@ -50,7 +50,7 @@
     },
     "packages/cli": {
       "name": "@nyron/cli",
-      "version": "0.4.8",
+      "version": "0.5.0",
       "bin": {
         "nyron": "./dist/index.js",
       },
@@ -2109,7 +2109,7 @@
 
     "next/postcss": ["postcss@8.4.31", "", { "dependencies": { "nanoid": "^3.3.6", "picocolors": "^1.0.0", "source-map-js": "^1.0.2" } }, "sha512-PS08Iboia9mts/2ygV3eLpY5ghnUcfLV/EXTOW1E2qYxJKGGBUtNjN76FYHnMs36RmARn41bC0AZmn+rR0OVpQ=="],
 
-    "nyron-bot/@nyron/cli": ["@nyron/cli@0.4.8", "", { "dependencies": { "commander": "^14.0.1", "cosmiconfig": "^9.0.0", "dotenv": "^17.2.3", "handlebars": "^4.7.8", "octokit": "^5.0.3", "probot": "^14.0.6", "semver": "^7.7.2", "simple-git": "^3.28.0" }, "peerDependencies": { "typescript": "^5" }, "bin": { "nyron": "dist/index.js" } }, "sha512-oyoxlZTdSRMY7VvRdBovoF/oyN2Vnr8SHnF/KLN6vIdlGPFsv450zxPQqDILly1RGlRFd4GG6WH/qYQNjsZL0w=="],
+    "nyron-bot/@nyron/cli": ["@nyron/cli@0.5.0", "", { "dependencies": { "commander": "^14.0.1", "cosmiconfig": "^9.0.0", "dotenv": "^17.2.3", "handlebars": "^4.7.8", "octokit": "^5.0.3", "probot": "^14.0.6", "semver": "^7.7.2", "simple-git": "^3.28.0" }, "peerDependencies": { "typescript": "^5" }, "bin": { "nyron": "dist/index.js" } }, "sha512-oOvLpVXirl6VqDA8HVVHQ8mhXlYrQbEETHRxClGOmbJayzN+TwlxY0G1COy+5LLPaL/ZPWXmXQ4QQ4P4r399hA=="],
 
     "nyron-bot/@types/node": ["@types/node@20.19.19", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-pb1Uqj5WJP7wrcbLU7Ru4QtA0+3kAXrkutGiD26wUKzSMgNNaPARTUDQmElUXp64kh3cWdou3Q0C7qwwxqSFmg=="],
 
