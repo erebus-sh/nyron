@@ -5,6 +5,7 @@ import { getParsedNyronConfig } from "../utils/getParsedNyronConfig.js";
 import { getChangedFolders } from "@nyron/cli/github/diff";
 import { getLatestTag } from "@nyron/cli/github/tags";
 import { ProjectChange } from "./types.js";
+import { buildProjectChangesComment } from "../utils/buildProjectChangesComment.js";
 
 export async function pullRequestOpened(context: Context<"pull_request">) {
   const pr = extractPrInfo(context.payload.pull_request);
@@ -41,8 +42,12 @@ export async function pullRequestOpened(context: Context<"pull_request">) {
     });
   }
 
-  // Create a single beautiful comment with all project changes
-  const commentBody = createProjectChangesComment(projectChanges);
+  // Build a formal GitHub-flavored Markdown comment summarizing changes
+  const commentBody = buildProjectChangesComment(projectChanges, {
+    owner: pr.owner,
+    repo: pr.repo,
+    headSha: context.payload.pull_request.head.sha,
+  });
   
   await context.octokit.rest.issues.createComment({
     owner: pr.owner,
@@ -52,35 +57,4 @@ export async function pullRequestOpened(context: Context<"pull_request">) {
   });
 }
 
-/**
- * Creates a beautifully formatted comment showing folder changes for all projects
- */
-function createProjectChangesComment(projectChanges: Array<ProjectChange>): string {
-  const header = "## 📁 Folder Changes Analysis\n\n";
-  
-  const sections = projectChanges.map(({ projectName, latestTag, changedFolders }) => {
-    const projectHeader = `### 🔍 **${projectName}**\n`;
-    
-    let tagInfo: string;
-    let changeInfo: string;
-    
-    if (latestTag) {
-      tagInfo = `**Latest Tag:** \`${latestTag}\`\n`;
-      
-      if (changedFolders.length > 0) {
-        changeInfo = `**Changed Folders:**\n${changedFolders.map(folder => `- \`${folder}\``).join('\n')}\n`;
-      } else {
-        changeInfo = `**Status:** ✅ No folder changes detected since last release\n`;
-      }
-    } else {
-      tagInfo = `**Latest Tag:** ⚠️ No tags found with prefix\n`;
-      changeInfo = `**Status:** 🆕 New project or no releases yet - cannot determine changes\n`;
-    }
-    
-    return `${projectHeader}${tagInfo}${changeInfo}`;
-  }).join('\n');
-
-  const footer = "\n---\n*This analysis compares the current pull request against the latest tags for each project. Projects without tags cannot be compared to a baseline.*";
-  
-  return header + sections + footer;
-}
+ 
