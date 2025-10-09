@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "start": "probot run ./lib/index.js",
+    "start": "bun run build && probot run ./lib/index.js",
     "test": "vitest"
   },
   "dependencies": {
