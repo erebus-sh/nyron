@@ -1,9 +1,35 @@
-// Semver parser
-// It only parse versions
-// Determine the next version
-// Determine who is bigger and smaller 0.0.0 > 0.0.1
-// Determic if in beta or not
-// Handle patching, minor, major extact bumping
+/**
+ * @fileoverview Semantic Version Management Utilities
+ * 
+ * This module provides comprehensive utilities for working with semantic versions (semver).
+ * It includes functionality for version parsing, comparison, incrementing, and beta release management.
+ * 
+ * Key capabilities:
+ * - Parse and validate semantic version strings
+ * - Increment versions (major, minor, patch, prerelease)
+ * - Compare version precedence (newer/older)
+ * - Detect beta prerelease versions
+ * - Convert stable versions to beta releases
+ * 
+ * All functions leverage the `semver` library for robust version handling and follow
+ * the semantic versioning specification (https://semver.org/).
+ * 
+ * @example
+ * ```typescript
+ * import { bumpVersion, isNewer, isBeta } from './semver'
+ * 
+ * // Version bumping
+ * bumpVersion("1.0.0", "patch") // "1.0.1"
+ * bumpVersion("1.0.0", "prerelease") // "1.0.1-beta.0"
+ * 
+ * // Version comparison
+ * isNewer("1.1.0", "1.0.0") // true
+ * 
+ * // Beta detection
+ * isBeta("1.0.0-beta.2") // true
+ * ```
+ */
+
 import semver from "semver"
 import type { BumpType } from "./types"
 

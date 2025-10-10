@@ -1,8 +1,10 @@
 import semver from "semver"
+import { isBeta } from "../core/semver"
 
 export interface TagParts {
   prefix: string
   version: string
+  prerelease: boolean
 }
 
 /**
@@ -29,7 +31,9 @@ export function parseTag(tag: string): TagParts | null {
     throw new Error(`Invalid semantic version in tag: ${tag}\n   → Version must follow semver format (e.g., 1.0.0)`)
   }
 
-  return { prefix, version }
+  const prerelease = isBeta(version)
+
+  return { prefix, version, prerelease }
 }
 
 /**
