@@ -52,7 +52,7 @@ const mockSimpleGit = mock(() => ({
 }))
 
 // Mock modules
-mock.module("../src/core/loadConfig", () => ({
+mock.module("../src/config", () => ({
   loadConfig: mockLoadConfig
 }))
 
@@ -70,6 +70,16 @@ mock.module("../src/utils/getCommitsSince", () => ({
 
 mock.module("../src/utils/validatePackage", () => ({
   validatePackage: mockValidatePackage
+}))
+
+mock.module("../src/core/semver", () => ({
+  bumpVersion: mock((version: string, type: string) => {
+    const [major, minor, patch] = version.split('.').map(Number)
+    if (type === 'patch') return `${major}.${minor}.${patch + 1}`
+    if (type === 'minor') return `${major}.${minor + 1}.0`
+    if (type === 'major') return `${major + 1}.0.0`
+    return version
+  })
 }))
 
 mock.module("../src/package/write", () => ({

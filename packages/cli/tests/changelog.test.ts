@@ -50,9 +50,9 @@ describe("generateChangelog", () => {
     expect(mockWriteChangelog).toHaveBeenCalledWith({
       prefix: "cli-v@",
       version: "1.2.0",
-      features: ["**ui**: add button"],
-      fixes: ["**api**: fix endpoint"],
-      chores: ["update deps"],
+      features: ["**ui**: add button (A) [[1](https://github.com/undefined/commit/1)]"],
+      fixes: ["**api**: fix endpoint (B) [[2](https://github.com/undefined/commit/2)]"],
+      chores: ["update deps (C) [[3](https://github.com/undefined/commit/3)]"],
     })
     expect(result.generated).toBe(true)
     expect(result.version).toBe("1.2.0")
@@ -72,8 +72,8 @@ describe("generateChangelog", () => {
     expect(mockWriteChangelog).toHaveBeenCalledWith({
       prefix: "v@",
       version: "2.0.0",
-      features: ["add feature"],
-      fixes: ["fix bug"],
+      features: ["add feature (A) [[1](https://github.com/undefined/commit/1)]"],
+      fixes: ["fix bug (B) [[2](https://github.com/undefined/commit/2)]"],
       chores: [],
     })
     expect(result.generated).toBe(true)
@@ -97,13 +97,13 @@ describe("generateChangelog", () => {
     expect(call).toBeDefined()
     expect(call.prefix).toBe("app@")
     expect(call.version).toBe("3.0.0")
-    expect(call.features).toEqual(["new feature"])
-    expect(call.fixes).toEqual(["bug fix"])
+    expect(call.features).toEqual(["new feature (A) [[1](https://github.com/undefined/commit/1)]"])
+    expect(call.fixes).toEqual(["bug fix (B) [[2](https://github.com/undefined/commit/2)]"])
     expect(call.chores.length).toBe(4)
-    expect(call.chores).toContain("update docs")
-    expect(call.chores).toContain("cleanup")
-    expect(call.chores).toContain("optimize")
-    expect(call.chores).toContain("add tests")
+    expect(call.chores).toContain("update docs (C) [[3](https://github.com/undefined/commit/3)]")
+    expect(call.chores).toContain("cleanup (D) [[4](https://github.com/undefined/commit/4)]")
+    expect(call.chores).toContain("optimize (E) [[5](https://github.com/undefined/commit/5)]")
+    expect(call.chores).toContain("add tests (F) [[6](https://github.com/undefined/commit/6)]")
     expect(result.generated).toBe(true)
   })
 
@@ -155,7 +155,7 @@ describe("generateChangelog", () => {
     expect(mockWriteChangelog).toHaveBeenCalledWith({
       prefix: "@scope/package@",
       version: "1.5.0",
-      features: ["feature"],
+      features: ["feature (A) [[1](https://github.com/undefined/commit/1)]"],
       fixes: [],
       chores: [],
     })
@@ -177,12 +177,12 @@ describe("generateChangelog", () => {
     expect(call).toBeDefined()
     expect(call.prefix).toBe("v@")
     expect(call.version).toBe("1.2.0")
-    expect(call.features).toEqual(["feature"])
+    expect(call.features).toEqual(["feature (A) [[1](https://github.com/undefined/commit/1)]"])
     expect(call.fixes).toEqual([])
     expect(call.chores.length).toBe(2)
-    expect(call.chores).toContain("random commit message")
+    expect(call.chores).toContain("random commit message (B) [[2](https://github.com/undefined/commit/2)]")
     // "WIP: work in progress" gets parsed as a conventional commit type "WIP"
-    expect(call.chores).toContain("work in progress")
+    expect(call.chores).toContain("work in progress (C) [[3](https://github.com/undefined/commit/3)]")
     expect(result.generated).toBe(true)
   })
 
@@ -200,8 +200,8 @@ describe("generateChangelog", () => {
     expect(mockWriteChangelog).toHaveBeenCalledWith({
       prefix: "v@",
       version: "2.0.0",
-      features: ["**core**: add A", "**core**: add B"],
-      fixes: ["**core**: fix C"],
+      features: ["**core**: add A (A) [[1](https://github.com/undefined/commit/1)]", "**core**: add B (B) [[2](https://github.com/undefined/commit/2)]"],
+      fixes: ["**core**: fix C (C) [[3](https://github.com/undefined/commit/3)]"],
       chores: [],
     })
     expect(result.generated).toBe(true)
@@ -241,8 +241,8 @@ describe("generateChangelog", () => {
     expect(call.features).toEqual([])
     expect(call.fixes).toEqual([])
     expect(call.chores.length).toBe(2)
-    expect(call.chores).toContain("update deps")
-    expect(call.chores).toContain("update readme")
+    expect(call.chores).toContain("update deps (A) [[1](https://github.com/undefined/commit/1)]")
+    expect(call.chores).toContain("update readme (B) [[2](https://github.com/undefined/commit/2)]")
     expect(result.generated).toBe(true)
   })
 })

@@ -296,7 +296,7 @@ export function organizeForChangelog(parsedCommits: ParsedCommits): OrganizedCom
   }
   
   // Process Chores and other types
-  const choreTypes = ["Chores", "Refactors", "Performance", "Docs", "Tests", "Style", "Other", "other"]
+  const choreTypes = ["Chores", "Refactoring", "Performance", "Documentation", "Tests", "Styling", "CI/CD", "Reverts", "Merges", "Deprecated", "Other", "other"]
   for (const type of choreTypes) {
     if (parsedCommits[type]) {
       for (const [scope, commits] of Object.entries(parsedCommits[type])) {

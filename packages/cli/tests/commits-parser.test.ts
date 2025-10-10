@@ -63,8 +63,8 @@ describe("commits-parser", () => {
     const result = parseCommits(commits)
     expect(result["Features"]?.["ui"]).toBeDefined()
     expect(result["Bug Fixes"]?.["api"]).toBeDefined()
-    expect(result["Docs"]?.["general"]).toBeDefined()
-    expect(result["Refactors"]?.["general"]).toBeDefined()
+    expect(result["Documentation"]?.["general"]).toBeDefined()
+    expect(result["Refactoring"]?.["general"]).toBeDefined()
   })
 
   it("should bucket non-conventional commits as 'other'", () => {
@@ -91,8 +91,8 @@ describe("commits-parser", () => {
       }
     ]
     const result = parseCommits(commits)
-    expect(result["Other"]?.["general"]).toBeDefined()
-    expect(result["Other"]?.["general"]?.[0]?.message).toBe("update deps")
+    expect(result["Chores"]?.["general"]).toBeDefined()
+    expect(result["Chores"]?.["general"]?.[0]?.message).toBe("update deps")
   })
 
   it("should parse commit with multi-word scope", () => {
