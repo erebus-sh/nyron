@@ -1,0 +1,148 @@
+---
+title: Workflow
+description: A typical versioning workflow using Nyron
+---
+
+# Workflow
+
+Here's a typical end-to-end versioning workflow using Nyron, from checking changes to creating a release.
+
+## Complete Release Workflow
+
+### 1. Check what's changed
+
+First, review the commits since your last release:
+
+```bash
+npx @nyron/cli diff --prefix v
+```
+
+This shows you:
+- What features were added
+- What bugs were fixed
+- What maintenance work was done
+
+Use this to decide on the type of version bump (major, minor, or patch).
+
+### 2. Bump version and generate changelog
+
+Once you've decided on the version type, run:
+
+```bash
+npx @nyron/cli bump --type minor --prefix v
+```
+
+This will:
+- Increment the version number
+- Generate a changelog based on your commits
+- Update your `package.json` file
+
+### 3. Review the changes
+
+Check the generated changelog and version changes to make sure everything looks correct.
+
+### 4. Commit the changes
+
+Commit the version bump and changelog updates:
+
+```bash
+git add .
+git commit -m "chore: bump version to 1.2.0"
+```
+
+### 5. Create and push the tag
+
+Create a git tag for the release:
+
+```bash
+npx @nyron/cli tag --prefix v --version 1.2.0
+```
+
+### 6. Push everything
+
+Push your commits and tags to the remote repository:
+
+```bash
+git push && git push --tags
+```
+
+## Monorepo Workflow
+
+For monorepos with multiple packages, the workflow is similar but you specify which package to release:
+
+```bash
+# Check changes for a specific package
+npx @nyron/cli diff --prefix @myapp/api@
+
+# Bump that package
+npx @nyron/cli bump --type patch --prefix @myapp/api@
+
+# Commit changes
+git add .
+git commit -m "chore(api): bump version to 1.0.1"
+
+# Tag the release
+npx @nyron/cli tag --prefix @myapp/api@ --version 1.0.1
+
+# Push
+git push && git push --tags
+```
+
+## Version Bump Decision Guide
+
+Choose the appropriate bump type based on your changes:
+
+### Major (`--type major`)
+
+Use for breaking changes that require users to update their code:
+
+- API changes that break compatibility
+- Removal of deprecated features
+- Major architectural changes
+
+Example: `1.5.2` → `2.0.0`
+
+### Minor (`--type minor`)
+
+Use for new features that are backward compatible:
+
+- New functionality
+- New API endpoints
+- Feature enhancements
+
+Example: `1.5.2` → `1.6.0`
+
+### Patch (`--type patch`)
+
+Use for bug fixes and minor updates:
+
+- Bug fixes
+- Documentation updates
+- Performance improvements (non-breaking)
+
+Example: `1.5.2` → `1.5.3`
+
+## Pro Tips
+
+### Use the reminder feature
+
+If you have `onPushReminder: true` in your config, Nyron will remind you to push your tags after creating them.
+
+### Preview before bumping
+
+Always run `nyron diff` first to see what will be included in the changelog.
+
+### Consistent commit messages
+
+The better your commit messages follow [conventional commits](/docs/guides/conventional-commits), the better your changelog will look.
+
+### Automate with CI/CD
+
+You can integrate Nyron into your CI/CD pipeline to automate releases on merge to main or when specific tags are created.
+
+## Next Steps
+
+- Learn about all available [commands](/docs/commands)
+- Understand [how Nyron works](/docs/guides/how-it-works) under the hood
+- Review [configuration options](/docs/getting-started/configuration)
+

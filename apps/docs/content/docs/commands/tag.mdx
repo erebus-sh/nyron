@@ -1,0 +1,91 @@
+---
+title: nyron tag
+description: Create and push a new version tag
+---
+
+# nyron tag
+
+Create and push a new version tag.
+
+## Usage
+
+```bash
+npx @nyron/cli tag --prefix <prefix> --version <version>
+```
+
+## Required Options
+
+### `-p, --prefix <prefix>`
+
+**Required.** The tag prefix to use (must match your configuration).
+
+```bash
+npx @nyron/cli tag --prefix v --version 1.2.0
+```
+
+### `-v, --version <version>`
+
+**Required.** The semantic version to tag (without the prefix).
+
+```bash
+npx @nyron/cli tag --prefix v --version 1.2.0
+```
+
+This creates a tag `v1.2.0`.
+
+## What It Does
+
+The `tag` command:
+
+1. Creates a git tag with the format `<prefix><version>`
+2. Pushes the tag to the remote repository
+3. Shows a reminder to push your commits if `onPushReminder` is enabled
+
+## Examples
+
+### Single package repository
+
+```bash
+npx @nyron/cli tag --prefix v --version 1.2.0
+```
+
+Creates and pushes tag: `v1.2.0`
+
+### Monorepo package
+
+```bash
+npx @nyron/cli tag --prefix @myapp/api@ --version 2.0.1
+```
+
+Creates and pushes tag: `@myapp/api@2.0.1`
+
+## Typical Workflow
+
+After using [`nyron bump`](/docs/commands/bump):
+
+```bash
+# 1. Bump generated a new version
+npx @nyron/cli bump --type minor --prefix v
+
+# 2. Review and commit changes
+git add .
+git commit -m "chore: bump version to 1.2.0"
+
+# 3. Create and push the tag
+npx @nyron/cli tag --prefix v --version 1.2.0
+
+# 4. Push commits
+git push && git push --tags
+```
+
+See the complete [workflow guide](/docs/guides/workflow) for more details.
+
+## Tag Format
+
+Tags are created in the format defined in your configuration:
+
+- For `tagPrefix: "v"` → `v1.2.0`
+- For `tagPrefix: "@pkg/name@"` → `@pkg/name@1.2.0`
+
+Make sure the prefix matches exactly what's in your `nyron.config.ts` file.
+

@@ -31,7 +31,7 @@ npm install -D @nyron/cli
 ### 2. Initialize
 
 ```bash
-npx nyron init
+npx @nyron/cli init
 ```
 
 This creates a `nyron.config.ts` file in your project root:
@@ -89,13 +89,13 @@ Generate a token at [GitHub Settings → Developer settings → Personal access 
 
 ```bash
 # See what commits you have since the last release
-npx nyron diff
+npx @nyron/cli diff
 
 # Bump version and auto-generate changelog
-npx nyron bump --type minor --prefix v
+npx @nyron/cli bump --type minor --prefix v
 
 # Create and push a git tag
-npx nyron tag --prefix v --version 1.2.0
+npx @nyron/cli tag --prefix v --version 1.2.0
 ```
 
 ---
@@ -158,7 +158,7 @@ Nyron recognizes and groups commits by type:
 Initialize Nyron configuration in your project.
 
 ```bash
-npx nyron init
+npx @nyron/cli init
 ```
 
 **Options:**
@@ -172,8 +172,8 @@ npx nyron init
 Show commits since the last release for all or specific projects.
 
 ```bash
-npx nyron diff
-npx nyron diff --prefix @my-pkg/sdk@
+npx @nyron/cli diff
+npx @nyron/cli diff --prefix @my-pkg/sdk@
 ```
 
 **Options:**
@@ -188,7 +188,7 @@ Use this to preview what will go into your next changelog.
 Bump project version and generate changelog automatically.
 
 ```bash
-npx nyron bump --type minor --prefix v
+npx @nyron/cli bump --type minor --prefix v
 ```
 
 **Options:**
@@ -208,7 +208,7 @@ npx nyron bump --type minor --prefix v
 Create and push a new version tag.
 
 ```bash
-npx nyron tag --prefix v --version 1.2.0
+npx @nyron/cli tag --prefix v --version 1.2.0
 ```
 
 **Options:**
@@ -257,17 +257,17 @@ Here's a typical versioning workflow with Nyron:
 
 ```bash
 # 1. Check what's changed
-npx nyron diff --prefix v
+npx @nyron/cli diff --prefix v
 
 # 2. Bump version and generate changelog
-npx nyron bump --type minor --prefix v
+npx @nyron/cli bump --type minor --prefix v
 
 # 3. Commit the changes
 git add .
 git commit -m "chore: bump version to 1.2.0"
 
 # 4. Create and push the tag
-npx nyron tag --prefix v --version 1.2.0
+npx @nyron/cli tag --prefix v --version 1.2.0
 git push && git push --tags
 ```
 

@@ -1,0 +1,73 @@
+---
+title: nyron init
+description: Initialize Nyron configuration in your project
+---
+
+# nyron init
+
+Initialize Nyron configuration in your project.
+
+## Usage
+
+```bash
+npx @nyron/cli init
+```
+
+This command creates a `nyron.config.ts` file in your project root with default configuration settings.
+
+## Options
+
+### `--force`
+
+Overwrite existing configuration file if one already exists.
+
+```bash
+npx @nyron/cli init --force
+```
+
+### `--json`
+
+Generate JSON config instead of TypeScript.
+
+```bash
+npx @nyron/cli init --json
+```
+
+<Callout type="info">
+JSON configuration support is coming soon.
+</Callout>
+
+## What It Creates
+
+The command generates a configuration file with the following structure:
+
+```ts
+import { defineConfig } from "@nyron/cli/config"
+
+export default defineConfig({
+  repo: "owner/repo",
+  projects: {
+    sdk: {
+      tagPrefix: "@my-package/sdk@",
+      path: "packages/sdk",
+    },
+    service: {
+      tagPrefix: "@my-package/service@",
+      path: "apps/service",
+    },
+  },
+  autoChangelog: true,
+  onPushReminder: true,
+})
+```
+
+Make sure to edit this file to match your actual repository structure and project names.
+
+## Next Steps
+
+After initialization:
+
+1. Edit the `nyron.config.ts` file to match your project structure
+2. Set up a [GitHub token](/docs/getting-started/quickstart#setup-github-token-optional-but-recommended) for enhanced changelogs
+3. Run [`nyron diff`](/docs/commands/diff) to see your recent commits
+

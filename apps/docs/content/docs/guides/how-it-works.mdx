@@ -1,0 +1,95 @@
+---
+title: How It Works
+description: Understanding how Nyron generates changelogs from your commits
+---
+
+# How It Works
+
+Nyron reads your Git history and parses **conventional commits** to generate structured changelogs automatically.
+
+## The Process
+
+Nyron follows a systematic approach to generate your changelogs:
+
+### 1. Fetches commits
+
+Nyron retrieves all commits since your last tagged release for the specified project.
+
+### 2. Filters out meta commits
+
+Version bumps, changelog updates, and other meta commits are automatically excluded from the changelog.
+
+### 3. Parses conventional commit syntax
+
+Each commit is analyzed to extract:
+- **Type**: The category of change (feat, fix, docs, etc.)
+- **Scope**: The area of the codebase affected (optional)
+- **Message**: The description of the change
+
+### 4. Groups commits
+
+Commits are organized into meaningful categories:
+- **Features**: New functionality
+- **Bug Fixes**: Bug fixes and corrections
+- **Chores**: Maintenance, documentation, refactoring
+
+### 5. Enriches with GitHub data
+
+If a GitHub token is configured, Nyron adds:
+- Author usernames and links
+- Author avatars
+- Commit URLs linking to GitHub
+
+### 6. Generates markdown
+
+The final output is formatted as clean, readable markdown suitable for changelogs.
+
+## Example Output
+
+Here's what a generated changelog section looks like:
+
+```markdown
+## Features
+- **auth**: add OAuth2 login ([@username](https://github.com/username)) [[a1b2c3d](https://github.com/owner/repo/commit/a1b2c3d)]
+
+## Bug Fixes
+- **api**: resolve memory leak in endpoint ([@username](https://github.com/username)) [[e4f5g6h](https://github.com/owner/repo/commit/e4f5g6h)]
+```
+
+## What Makes It Work
+
+### Conventional Commits
+
+Nyron relies on the [conventional commits specification](https://www.conventionalcommits.org/). This standardized format allows Nyron to:
+
+- Automatically categorize changes
+- Generate meaningful changelogs
+- Determine the scope of changes
+
+Learn more about [conventional commits format](/docs/guides/conventional-commits).
+
+### GitHub Integration
+
+The GitHub integration provides rich context:
+
+- **Author attribution**: See who made each change
+- **Commit links**: Jump directly to the commit on GitHub
+- **Repository metadata**: Accurate project information
+
+While GitHub is currently required, support for other platforms is planned.
+
+## Benefits
+
+By automating the changelog generation process, Nyron:
+
+- ✅ Saves time on manual changelog writing
+- ✅ Ensures consistency across releases
+- ✅ Reduces human error in version management
+- ✅ Keeps your team focused on building features
+
+## Next Steps
+
+- Learn about [conventional commit syntax](/docs/guides/conventional-commits)
+- See a typical [versioning workflow](/docs/guides/workflow)
+- Explore [commands](/docs/commands) to start using Nyron
+

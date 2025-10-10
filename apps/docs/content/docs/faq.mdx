@@ -1,0 +1,82 @@
+---
+title: FAQ
+description: Frequently asked questions about Nyron
+---
+
+# Frequently Asked Questions
+
+## Do I need to use conventional commits?
+
+Yes. Nyron parses commit messages to generate changelogs. If your commits don't follow the `type(scope): message` format, they'll be grouped under "Other".
+
+For the best experience, we recommend following the [conventional commits specification](https://www.conventionalcommits.org/). Learn more in our [conventional commits guide](/docs/guides/conventional-commits).
+
+## Can I use this without GitHub?
+
+Not yet. Nyron currently depends on GitHub for repository metadata and enriched commit information (author links, avatars, commit URLs). Support for other platforms is planned.
+
+## Does it work with monorepos?
+
+Absolutely. Define multiple projects in your config with different `tagPrefix` values, and Nyron will track each independently.
+
+Example configuration for a monorepo:
+
+```ts
+import { defineConfig } from "@nyron/cli/config"
+
+export default defineConfig({
+  repo: "your-org/monorepo",
+  projects: {
+    api: {
+      tagPrefix: "@monorepo/api@",
+      path: "packages/api",
+    },
+    sdk: {
+      tagPrefix: "@monorepo/sdk@",
+      path: "packages/sdk",
+    },
+  },
+})
+```
+
+Each project will have its own version history and changelog.
+
+## What if I don't have a GitHub token?
+
+Nyron will still work, but changelogs won't include GitHub usernames, avatars, or commit URLs—just the git author name.
+
+We recommend setting up a GitHub token for the best experience. See the [quickstart guide](/docs/getting-started/quickstart#setup-github-token-optional-but-recommended) for instructions.
+
+## How do I change the changelog format?
+
+Currently, Nyron uses a predefined changelog format based on conventional commits. Customizable templates are planned for future releases.
+
+## Can I use Nyron with CI/CD?
+
+Yes! You can integrate Nyron into your CI/CD pipeline. For example, you could automatically generate changelogs when merging to your main branch, or create releases when tags are pushed.
+
+## What version of Node.js do I need?
+
+Nyron is built to work with modern Node.js versions. We recommend Node.js 18 or higher, though it may work with earlier versions.
+
+You can also use Bun, which is our recommended package manager for the best performance.
+
+## How do I migrate from another versioning tool?
+
+1. Install Nyron: `bun add -D @nyron/cli`
+2. Initialize configuration: `npx @nyron/cli init`
+3. Edit `nyron.config.ts` to match your existing tag format
+4. Start using Nyron commands
+
+Nyron will work with your existing git tags—just make sure the `tagPrefix` in your config matches your current tagging convention.
+
+## Where can I get help?
+
+- Check the [documentation](/docs)
+- Open an issue on [GitHub](https://github.com/erebus-sh/nyron)
+- Review the [guides](/docs/guides/how-it-works) for detailed explanations
+
+## Is Nyron open source?
+
+Yes! Nyron is open source and licensed under ISC. Contributions are welcome.
+

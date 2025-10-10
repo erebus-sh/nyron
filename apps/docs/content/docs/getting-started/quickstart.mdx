@@ -1,0 +1,105 @@
+---
+title: Quickstart
+description: Get up and running with Nyron in minutes
+---
+
+# Quickstart
+
+This guide will help you set up Nyron in your project and create your first automated release.
+
+## Initialize Nyron
+
+Run the initialization command to create a configuration file:
+
+```bash
+npx @nyron/cli init
+```
+
+This creates a `nyron.config.ts` file in your project root with the following structure:
+
+```ts
+import { defineConfig } from "@nyron/cli/config"
+
+export default defineConfig({
+  repo: "owner/repo", // Your GitHub repo
+  projects: {
+    sdk: {
+      tagPrefix: "@my-package/sdk@",
+      path: "packages/sdk",
+    },
+    service: {
+      tagPrefix: "@my-package/service@",
+      path: "apps/service",
+    },
+  },
+  autoChangelog: true,
+  onPushReminder: true,
+})
+```
+
+**Edit this file** to match your project structure.
+
+### Single-Package Repository
+
+For a single-package repo, use this simpler configuration:
+
+```ts
+import { defineConfig } from "@nyron/cli/config"
+
+export default defineConfig({
+  repo: "your-org/your-repo",
+  projects: {
+    main: {
+      tagPrefix: "v",
+      path: ".",
+    },
+  },
+  autoChangelog: true,
+  onPushReminder: true,
+})
+```
+
+## Setup GitHub Token (Optional but Recommended)
+
+For enriched changelogs with author links and commit URLs, set a GitHub token:
+
+```bash
+# Create .env in your project root
+echo "GITHUB_TOKEN=your_github_token_here" > .env
+```
+
+Generate a token at [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
+
+<Callout type="info">
+Without a GitHub token, Nyron will still work, but changelogs won't include GitHub usernames, avatars, or commit URLs—just the git author name.
+</Callout>
+
+## Start Using Nyron
+
+Now you're ready to use Nyron! Here are some common commands to get started:
+
+### See what commits you have since the last release
+
+```bash
+npx @nyron/cli diff
+```
+
+### Bump version and auto-generate changelog
+
+```bash
+npx @nyron/cli bump --type minor --prefix v
+```
+
+### Create and push a git tag
+
+```bash
+npx @nyron/cli tag --prefix v --version 1.2.0
+```
+
+## Next Steps
+
+- Learn about [configuration options](/docs/getting-started/configuration)
+- Explore all [available commands](/docs/commands)
+- Understand [how Nyron works](/docs/guides/how-it-works)
+- Read about [conventional commits](/docs/guides/conventional-commits)
+

@@ -1,0 +1,138 @@
+---
+title: Conventional Commits
+description: Understanding the conventional commit format and supported types
+---
+
+# Conventional Commits
+
+Nyron uses the [conventional commits specification](https://www.conventionalcommits.org/) to parse your commit history and generate meaningful changelogs.
+
+## Commit Format
+
+The conventional commit format follows this structure:
+
+```
+<type>(<scope>): <message>
+```
+
+### Components
+
+- **Type**: The category of change (required)
+- **Scope**: The area of the codebase affected (optional)
+- **Message**: A brief description of the change (required)
+
+### Examples
+
+```
+feat(auth): add OAuth2 login
+fix(api): resolve memory leak in endpoint
+docs: update installation guide
+refactor(core): simplify error handling
+```
+
+## Supported Commit Types
+
+Nyron recognizes and groups commits by the following types:
+
+| Type | Group | Description |
+|------|-------|-------------|
+| `feat` | **Features** | New features |
+| `fix` | **Bug Fixes** | Bug fixes |
+| `docs` | **Chores** | Documentation changes |
+| `refactor` | **Chores** | Code refactoring |
+| `perf` | **Chores** | Performance improvements |
+| `test` | **Chores** | Test additions/changes |
+| `chore` | **Chores** | Maintenance tasks |
+| `style` | **Chores** | Code style changes |
+
+## Changelog Grouping
+
+Commits are organized into three main sections in the generated changelog:
+
+### Features
+
+All commits with type `feat` appear under the Features section:
+
+```markdown
+## Features
+- **auth**: add OAuth2 login
+- **dashboard**: implement real-time updates
+```
+
+### Bug Fixes
+
+All commits with type `fix` appear under Bug Fixes:
+
+```markdown
+## Bug Fixes
+- **api**: resolve memory leak in endpoint
+- **ui**: fix button alignment issue
+```
+
+### Chores
+
+All other types (`docs`, `refactor`, `perf`, `test`, `chore`, `style`) are grouped under Chores:
+
+```markdown
+## Chores
+- **docs**: update API documentation
+- **test**: add unit tests for auth module
+```
+
+## Best Practices
+
+### Use descriptive scopes
+
+Scopes help organize changes by area:
+
+```
+feat(auth): add OAuth2 login
+fix(api): resolve memory leak
+docs(readme): update installation steps
+```
+
+### Write clear messages
+
+Messages should be concise and describe what changed:
+
+✅ **Good:**
+```
+feat(auth): add password reset functionality
+fix(api): prevent null pointer exception in user endpoint
+```
+
+❌ **Bad:**
+```
+feat: stuff
+fix: bug
+```
+
+### Be consistent
+
+Stick to lowercase for types and scopes, and use imperative mood for messages:
+
+```
+feat(core): add new feature
+```
+
+Not:
+```
+Feat(Core): Added new feature
+```
+
+## Non-Conventional Commits
+
+If a commit doesn't follow the conventional format, Nyron will:
+
+- Still include it in the changelog
+- Group it under "Other" or "Chores"
+- Use the full commit message as-is
+
+For best results, ensure all commits follow the conventional format.
+
+## Next Steps
+
+- Learn [how Nyron works](/docs/guides/how-it-works) with these commits
+- See a typical [versioning workflow](/docs/guides/workflow)
+- Start using the [`diff` command](/docs/commands/diff) to preview your commits
+

@@ -1,0 +1,78 @@
+---
+title: nyron diff
+description: Show commits since the last release
+---
+
+# nyron diff
+
+Show commits since the last release for all or specific projects.
+
+## Usage
+
+### View all commits across all projects
+
+```bash
+npx @nyron/cli diff
+```
+
+### View commits for a specific project
+
+```bash
+npx @nyron/cli diff --prefix @my-pkg/sdk@
+```
+
+## Options
+
+### `-f, --prefix <prefix>`
+
+Filter commits by tag prefix. Only shows commits for the project with the specified prefix.
+
+```bash
+npx @nyron/cli diff --prefix v
+```
+
+## What It Shows
+
+The `diff` command displays:
+
+- All commits since the last tagged release
+- Commits grouped by type (Features, Bug Fixes, Chores)
+- Author information (if GitHub token is configured)
+- Commit hashes and messages
+
+This gives you a preview of what will be included in your next changelog.
+
+## Examples
+
+### Single package repository
+
+```bash
+npx @nyron/cli diff --prefix v
+```
+
+### Monorepo - specific package
+
+```bash
+npx @nyron/cli diff --prefix @myapp/api@
+```
+
+### Check all projects
+
+```bash
+npx @nyron/cli diff
+```
+
+## Use Cases
+
+- Preview changes before creating a release
+- Verify commits are following [conventional commit format](/docs/guides/conventional-commits)
+- Decide on the appropriate version bump type (major, minor, patch)
+- Review what will appear in the generated changelog
+
+## Next Steps
+
+After reviewing your commits:
+
+- Use [`nyron bump`](/docs/commands/bump) to create a new version and changelog
+- Learn about the [versioning workflow](/docs/guides/workflow)
+

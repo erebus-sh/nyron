@@ -1,0 +1,103 @@
+---
+title: nyron bump
+description: Bump project version and generate changelog
+---
+
+# nyron bump
+
+Bump project version and generate changelog automatically.
+
+## Usage
+
+```bash
+npx @nyron/cli bump --type <type> --prefix <prefix>
+```
+
+## Required Options
+
+### `-t, --type <type>`
+
+**Required.** The type of version bump to perform.
+
+**Values:**
+- `major` - For breaking changes (e.g., 1.0.0 → 2.0.0)
+- `minor` - For new features (e.g., 1.0.0 → 1.1.0)
+- `patch` - For bug fixes (e.g., 1.0.0 → 1.0.1)
+
+```bash
+npx @nyron/cli bump --type minor --prefix v
+```
+
+### `-x, --prefix <prefix>`
+
+**Required.** Tag prefix from your configuration file.
+
+For single packages:
+```bash
+npx @nyron/cli bump --type minor --prefix v
+```
+
+For monorepo packages:
+```bash
+npx @nyron/cli bump --type patch --prefix @myapp/api@
+```
+
+## What It Does
+
+When you run `nyron bump`, it performs the following steps:
+
+1. **Fetches commits** since the last tag with the specified prefix
+2. **Generates changelog** based on conventional commits
+3. **Updates `package.json`** version in the project directory
+4. **Optionally prompts** to create a git tag
+
+## Examples
+
+### Bump a minor version
+
+```bash
+npx @nyron/cli bump --type minor --prefix v
+```
+
+This will:
+- Change version from `1.0.0` to `1.1.0`
+- Generate changelog with all features and fixes
+- Update the package.json file
+
+### Bump a patch version for a monorepo package
+
+```bash
+npx @nyron/cli bump --type patch --prefix @workspace/api@
+```
+
+### Bump a major version (breaking changes)
+
+```bash
+npx @nyron/cli bump --type major --prefix v
+```
+
+## Changelog Generation
+
+The changelog is automatically generated based on your commit history. It groups commits into:
+
+- **Features** - New features (`feat:` commits)
+- **Bug Fixes** - Bug fixes (`fix:` commits)
+- **Chores** - Maintenance tasks (`chore:`, `docs:`, `refactor:`, etc.)
+
+Learn more about [how Nyron works](/docs/guides/how-it-works).
+
+## After Bumping
+
+After running `bump`, you should:
+
+1. Review the generated changelog
+2. Commit the changes:
+   ```bash
+   git add .
+   git commit -m "chore: bump version to x.y.z"
+   ```
+3. Create a tag using [`nyron tag`](/docs/commands/tag)
+4. Push your changes and tags
+
+See the full [workflow guide](/docs/guides/workflow) for details.
+

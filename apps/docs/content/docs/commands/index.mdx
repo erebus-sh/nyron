@@ -1,0 +1,41 @@
+---
+title: Commands
+description: Reference for all Nyron CLI commands
+---
+
+# Commands
+
+Nyron provides a set of commands to manage your versioning workflow.
+
+## Available Commands
+
+### [`nyron init`](/docs/commands/init)
+
+Initialize Nyron configuration in your project.
+
+### [`nyron diff`](/docs/commands/diff)
+
+Show commits since the last release for all or specific projects.
+
+### [`nyron bump`](/docs/commands/bump)
+
+Bump project version and generate changelog automatically.
+
+### [`nyron tag`](/docs/commands/tag)
+
+Create and push a new version tag.
+
+## Command Structure
+
+All Nyron commands follow this pattern:
+
+```bash
+npx @nyron/cli <command> [options]
+```
+
+Use the `--help` flag with any command to see available options:
+
+```bash
+npx @nyron/cli <command> --help
+```
+

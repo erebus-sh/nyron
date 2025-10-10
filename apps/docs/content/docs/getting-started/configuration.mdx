@@ -1,0 +1,122 @@
+---
+title: Configuration
+description: Configure Nyron for your project structure
+---
+
+# Configuration
+
+The `nyron.config.ts` file defines your versioning strategy and project structure.
+
+## Configuration File
+
+```ts
+import { defineConfig } from "@nyron/cli/config"
+
+export default defineConfig({
+  // GitHub repository (owner/repo)
+  repo: "your-org/your-repo",
+  
+  // Projects to version (supports monorepos)
+  projects: {
+    // Key is the project name
+    backend: {
+      tagPrefix: "@my-app/backend@", // Git tag format
+      path: "apps/backend",          // Path to project
+    },
+    frontend: {
+      tagPrefix: "@my-app/frontend@",
+      path: "apps/frontend",
+    },
+  },
+  
+  // Automatically generate changelog on bump (default: true)
+  autoChangelog: true,
+  
+  // Remind to push tags after creating them (default: true)
+  onPushReminder: true,
+})
+```
+
+## Configuration Options
+
+### `repo`
+
+**Type:** `string`  
+**Required:** Yes
+
+Your GitHub repository in the format `owner/repo`.
+
+```ts
+repo: "your-org/your-repo"
+```
+
+### `projects`
+
+**Type:** `Record<string, ProjectConfig>`  
+**Required:** Yes
+
+An object defining all projects in your repository. Each key is a project name, and the value contains:
+
+- `tagPrefix`: The prefix used for git tags (e.g., `"v"`, `"@pkg/name@"`)
+- `path`: The path to the project directory relative to repository root
+
+### `autoChangelog`
+
+**Type:** `boolean`  
+**Default:** `true`
+
+Automatically generate changelog when running `nyron bump`.
+
+### `onPushReminder`
+
+**Type:** `boolean`  
+**Default:** `true`
+
+Show a reminder to push tags after creating them.
+
+## Monorepo Setup
+
+For monorepos, define multiple projects with different tag prefixes:
+
+```ts
+import { defineConfig } from "@nyron/cli/config"
+
+export default defineConfig({
+  repo: "your-org/monorepo",
+  projects: {
+    api: {
+      tagPrefix: "@monorepo/api@",
+      path: "packages/api",
+    },
+    sdk: {
+      tagPrefix: "@monorepo/sdk@",
+      path: "packages/sdk",
+    },
+    cli: {
+      tagPrefix: "@monorepo/cli@",
+      path: "packages/cli",
+    },
+  },
+})
+```
+
+Nyron will track each project independently based on their tag prefixes.
+
+## Single Package Setup
+
+For single-package repositories:
+
+```ts
+import { defineConfig } from "@nyron/cli/config"
+
+export default defineConfig({
+  repo: "your-org/single-package",
+  projects: {
+    main: {
+      tagPrefix: "v",
+      path: ".",
+    },
+  },
+})
+```
+
