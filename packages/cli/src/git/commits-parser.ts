@@ -123,43 +123,101 @@ export function parseCommits(commits: CommitDiff[]): ParsedCommits {
 }
 
 /**
- * Normalizes commit types into canonical groups for changelog generation.
+ * Normalizes commit types into canonical, broad changelog groups.
  * 
- * Maps conventional commit types to human-readable category names that are
- * suitable for display in changelogs and release notes.
+ * This function maps a wide range of conventional (and de facto) commit types 
+ * to organized, human-readable categories, making it easy to group commits 
+ * for changelog or release note generation.
  * 
- * @param type - The raw commit type from the conventional commit message
- * @returns The normalized type name for changelog categorization
+ * Category groupings:
+ * - Features: All forms of feature additions and enhancements.
+ * - Bug Fixes: All problem-solving, patch, or repair work.
+ * - Documentation: Docs or meta-content changes.
+ * - Refactoring: Structure or code cleanups not affecting behavior.
+ * - Performance: Speed or efficiency improvements.
+ * - Chores: Tooling, infra, build, workflow, or dependency updates.
+ * - Tests: Test additions or improvements.
+ * - Styling: Non-functional style/formatting changes.
+ * - CI/CD: Pipeline and deployment improvements.
+ * - Reverts, Merges, Deprecated: Special or transitional categories.
+ * - Other: Unclassified/unknown types.
+ * 
+ * @param type - The raw commit type from the commit message.
+ * @returns The broad, normalized group for changelog organization.
  * 
  * @example
- * ```typescript
- * normalizeType("feat")     // Returns "Features"
- * normalizeType("fix")      // Returns "Bug Fixes"
- * normalizeType("refactor") // Returns "Refactors"
- * normalizeType("unknown")  // Returns "Other"
- * ```
+ * normalizeType("feat")        // "Features"
+ * normalizeType("hotfix")      // "Bug Fixes"
+ * normalizeType("ci")          // "CI/CD"
+ * normalizeType("wip")         // "Chores"
+ * normalizeType("build")       // "Chores"
+ * normalizeType("performance") // "Performance"
+ * normalizeType("foo")         // "Other"
  */
 function normalizeType(type: string): string {
-  switch (type) {
-    case "feat":
-      return "Features"
-    case "fix":
-      return "Bug Fixes"
-    case "refactor":
-      return "Refactors"
-    case "perf":
-      return "Performance"
-    case "docs":
-      return "Docs"
-    case "chore":
-      return "Chores"
-    case "test":
-      return "Tests"
-    case "style":
-      return "Style"
-    default:
-      return "Other"
-  }
+  // Standardize case
+  const raw = type.trim().toLowerCase();
+  // Map of commit type synonyms -> category
+  const typeMap: Record<string, string> = {
+    // Features
+    "feat": "Features",
+    "feature": "Features",
+    "enhancement": "Features",
+    // Bug Fixes
+    "fix": "Bug Fixes",
+    "hotfix": "Bug Fixes",
+    "bugfix": "Bug Fixes",
+    "bug": "Bug Fixes",
+    "patch": "Bug Fixes",
+    // Documentation
+    "docs": "Documentation",
+    "doc": "Documentation",
+    "documentation": "Documentation",
+    // Refactors
+    "refactor": "Refactoring",
+    "refactoring": "Refactoring",
+    "cleanup": "Refactoring",
+    // Performance
+    "perf": "Performance",
+    "performance": "Performance",
+    // Chores & Maintenance
+    "chore": "Chores",
+    "maintain": "Chores",
+    "maintenance": "Chores",
+    "deps": "Chores",
+    "dependency": "Chores",
+    "dependencies": "Chores",
+    "build": "Chores",
+    "bump": "Chores",
+    "init": "Chores",
+    "wip": "Chores",
+    "infra": "Chores",
+    "infrastructure": "Chores",
+    "tool": "Chores",
+    "tools": "Chores",
+    "config": "Chores",
+    "meta": "Chores",
+    // CI/CD
+    "ci": "CI/CD",
+    "cd": "CI/CD",
+    "pipeline": "CI/CD",
+    "deploy": "CI/CD",
+    // Tests
+    "test": "Tests",
+    "tests": "Tests",
+    "testing": "Tests",
+    // Styling
+    "style": "Styling",
+    "format": "Styling",
+    "lint": "Styling",
+    "prettify": "Styling",
+    // Special cases
+    "revert": "Reverts",
+    "merge": "Merges",
+    "deprecated": "Deprecated",
+    // Add your own mappings as needed
+  };
+  return typeMap[raw] || "Other";
 }
 
 /**
