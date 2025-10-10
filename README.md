@@ -297,7 +297,7 @@ Nyron will still work, but changelogs won't include GitHub usernames, avatars, o
 
 ## License
 
-MIT
+ISC
 
 ---
 
