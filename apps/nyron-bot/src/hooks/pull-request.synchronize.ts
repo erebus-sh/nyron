@@ -1,19 +1,26 @@
 
 import { Context } from "probot";
-import { extractPrInfo } from "../utils/extractPrInfo.js";
-import { getParsedNyronConfig } from "../utils/getParsedNyronConfig.js";
+import { buildProjectChangesComment } from "../utils/buildProjectChangesComment.js";
+import { processPr } from "./processPr.js";
+import { extractNyronyComment } from "./extractNyronyComment.js";
 
 
 export async function pullRequestSynchronize(context: Context<"pull_request">) {
-  const pr = extractPrInfo(context.payload.pull_request);
+  const { pr, projectChanges } = await processPr(context);
 
-  const config = await getParsedNyronConfig(context, pr);
+  // Build a formal GitHub-flavored Markdown comment summarizing changes
+  const commentBody = buildProjectChangesComment(projectChanges, {
+    owner: pr.owner,
+    repo: pr.repo,
+    headSha: context.payload.pull_request.head.sha,
+  });
 
-  const entries = Object.entries(config.projects);
+  const nyronyComment = await extractNyronyComment(context, pr);
 
-  for (const [name, project] of entries) {
-    const path = project.path;
-    const prefix = project.tagPrefix;
-    console.log(`Project: ${name}, Path: ${path}, Prefix: ${prefix}`);
-  }
+  await context.octokit.rest.issues.updateComment({
+    owner: pr.owner,
+    repo: pr.repo,
+    comment_id: nyronyComment.id,
+    body: commentBody,
+  });
 }
