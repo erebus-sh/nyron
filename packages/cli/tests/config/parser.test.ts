@@ -9,8 +9,8 @@ import {
   parseConfigFromPath,
   parseConfigFromJSON,
   parseConfigFromObject,
-} from "../src/config/parser"
-import type { NyronConfig } from "../src/config/types"
+} from "../../src/config/parser"
+import type { NyronConfig } from "../../src/config/types"
 
 describe("parseConfigFromString", () => {
   describe("base64 encoding", () => {

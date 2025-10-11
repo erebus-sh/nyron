@@ -1,5 +1,5 @@
 import { describe, it, expect, mock, beforeEach } from "bun:test"
-import { generateChangelog } from "../src/utils/generateChangelog"
+import { generateChangelog } from "../../src/utils/generateChangelog"
 
 // Mock all dependencies
 const mockGetLatestTag = mock(() => Promise.resolve("cli-v@1.2.0"))

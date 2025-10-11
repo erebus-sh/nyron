@@ -10,7 +10,7 @@ mock.module("simple-git", () => ({
 }))
 
 // Import after mocking
-const { getChangedFilesSince, getChangedFolders } = await import("../src/git/diff")
+const { getChangedFilesSince, getChangedFolders } = await import("../../src/git/diff")
 
 describe("diff", () => {
   beforeEach(() => {
