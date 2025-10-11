@@ -1,6 +1,6 @@
 import { resolve, join } from "path"
 
-const ROOT_PATH = ".nyron"
+export const CHANGELOG_ROOT_PATH = ".nyron/changelog/"
 
 /**
  * Sanitizes a string for use in file paths by replacing @ and / with _
@@ -25,7 +25,7 @@ export function buildChangelogFileName(prefix: string, version: string): string 
  * @returns The changelog directory path (e.g., ".nyron/@nyron/cli")
  */
 export function buildChangelogDir(prefix: string): string {
-    return resolve(ROOT_PATH, prefix)
+    return resolve(CHANGELOG_ROOT_PATH, prefix)
 }
 
 /**

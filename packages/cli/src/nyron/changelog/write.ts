@@ -1,6 +1,6 @@
 import { mkdir } from "fs/promises"
-import { writeFile, fileExists } from "../core/files"
-import { renderTemplate } from "../utils/renderTemplate"
+import { writeFile, fileExists } from "../../core/files"
+import { renderTemplate } from "../../utils/renderTemplate"
 import { buildChangelogPath, buildChangelogDir } from "./file-parser"
 
 interface WriteChangelogOptions {

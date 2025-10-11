@@ -2,9 +2,9 @@ import { existsSync, writeFileSync } from "fs"
 import path from "path"
 import type { InitOptions, InitResult } from "./types"
 import { detectEnvironmentAndOfferInstall } from "../utils/detectEnvironment"
+import { createNyronDirectory } from "../nyron/creator"
 
 export async function init(options: InitOptions): Promise<InitResult> {
-  // TODO: Add json option and handle it
   const filename = "nyron.config.ts"
   const filepath = path.resolve(process.cwd(), filename)
 
@@ -39,5 +39,10 @@ export default defineConfig({
   writeFileSync(filepath, sample, "utf-8")
   console.log(`✅ Created ${filename}`)
   console.log(`   → Edit the file to configure your projects`)
+
+  // Create a .nyron/ directory
+  createNyronDirectory()
+
+
   return { created: true, filepath, overwritten: existsSync(filepath) && !!options.force }
 }
