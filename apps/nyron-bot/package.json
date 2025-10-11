@@ -1,5 +1,5 @@
 {
-  "name": "nyron-bot",
+  "name": "@nyron/bot",
   "version": "1.0.0",
   "private": true,
   "description": "Nyron is a tool for managing versioning and changelogs for your projects.",
