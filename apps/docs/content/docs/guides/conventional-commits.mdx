@@ -130,6 +130,54 @@ If a commit doesn't follow the conventional format, Nyron will:
 
 For best results, ensure all commits follow the conventional format.
 
+## GitHub Repository Setup
+
+To maintain a clean, linear, and machine-readable git history compatible with changelog automation, your GitHub repository should follow the setup below.
+
+### Required GitHub Settings
+
+**Settings → General → Pull Requests**
+
+| Option | State | Why |
+|--------|-------|-----|
+| Allow merge commits | ❌ Disabled | Prevents messy "Merge pull request #…" commits that break commit parsing and clutter history. |
+| Allow squash merging | ✅ Enabled | Produces one clean commit per PR using the PR title as the message. |
+| Allow rebase merging | ✅ Enabled (optional) | Maintains linear history if granular commits are needed. |
+
+**Settings → Branches → Branch protection rules**
+
+This is optional but strongly recommended for production repositories:
+
+| Rule | State | Why |
+|------|-------|-----|
+| Require pull request before merging | ✅ | Ensures review and title validation. |
+| Require status checks to pass | ✅ | Prevents broken or unlinted commits from landing. |
+| Require linear history | ✅ | Enforces a flat, merge-free commit tree. |
+| Include administrators | ✅ | Prevents accidental overrides. |
+| Disallow force pushes | ✅ | Protects commit history integrity. |
+
+### PR Title Conventions
+
+All PR titles must follow the **Conventional Commit** format.
+This ensures changelogs are generated automatically and correctly.
+
+```
+type(scope): description (#PR)
+```
+
+**Examples:**
+
+```
+feat(api): add realtime pub/sub (#42)
+fix(auth): correct token refresh (#77)
+docs: clarify environment variable setup
+chore: update dependencies (#88)
+```
+
+<Callout type="info">
+When you squash merge a PR, GitHub uses the PR title as the commit message. This means your PR title becomes the commit message that Nyron parses for changelog generation. Make sure your PR titles follow the conventional commit format!
+</Callout>
+
 ## Next Steps
 
 - Learn [how Nyron works](/docs/guides/how-it-works) with these commits

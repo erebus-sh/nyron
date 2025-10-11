@@ -32,6 +32,28 @@ Here are a few things you can do that will increase the likelihood of your pull 
 
 Work in Progress pull requests are also welcome to get feedback early on, or if there is something blocked you.
 
+## 🧭 GitHub Merge & Commit Policy
+
+To maintain a clean, linear, and machine-readable git history compatible with changelog automation, this repository must follow the setup below.
+
+### 🧠 Commit & PR Conventions
+
+All PR titles must follow the **Conventional Commit** format.
+This ensures changelogs are generated automatically and correctly.
+
+```
+type(scope): description (#PR)
+```
+
+**Examples:**
+
+```
+feat(api): add realtime pub/sub (#42)
+fix(auth): correct token refresh (#77)
+docs: clarify environment variable setup
+chore: update dependencies (#88)
+```
+
 ## Resources
 
 - [How to Contribute to Open Source](https://opensource.guide/how-to-contribute/)

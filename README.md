@@ -275,6 +275,52 @@ git push && git push --tags
 
 ---
 
+## 🧭 GitHub Merge & Commit Policy
+
+To maintain a clean, linear, and machine-readable git history compatible with changelog automation, this repository must follow the setup below.
+
+### ✅ Required GitHub Settings
+
+**Settings → General → Pull Requests**
+
+| Option | State | Why |
+|--------|-------|-----|
+| Allow merge commits | ❌ Disabled | Prevents messy "Merge pull request #…" commits that break commit parsing and clutter history. |
+| Allow squash merging | ✅ Enabled | Produces one clean commit per PR using the PR title as the message. |
+| Allow rebase merging | ✅ Enabled (optional) | Maintains linear history if granular commits are needed. |
+
+**Settings → Branches → Branch protection rules**
+
+This is optional but strongly recommended for production repositories:
+
+| Rule | State | Why |
+|------|-------|-----|
+| Require pull request before merging | ✅ | Ensures review and title validation. |
+| Require status checks to pass | ✅ | Prevents broken or unlinted commits from landing. |
+| Require linear history | ✅ | Enforces a flat, merge-free commit tree. |
+| Include administrators | ✅ | Prevents accidental overrides. |
+| Disallow force pushes | ✅ | Protects commit history integrity. |
+
+### 🧠 Commit & PR Conventions
+
+All PR titles must follow the **Conventional Commit** format.
+This ensures changelogs are generated automatically and correctly.
+
+```
+type(scope): description (#PR)
+```
+
+**Examples:**
+
+```
+feat(api): add realtime pub/sub (#42)
+fix(auth): correct token refresh (#77)
+docs: clarify environment variable setup
+chore: update dependencies (#88)
+```
+
+---
+
 ## FAQ
 
 ### Do I need to use conventional commits?

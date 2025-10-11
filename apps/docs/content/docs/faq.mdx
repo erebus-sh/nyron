@@ -47,6 +47,20 @@ Nyron will still work, but changelogs won't include GitHub usernames, avatars, o
 
 We recommend setting up a GitHub token for the best experience. See the [quickstart guide](/docs/getting-started/quickstart#setup-github-token-optional-but-recommended) for instructions.
 
+## What GitHub settings should I configure?
+
+To maintain a clean, linear, and machine-readable git history compatible with Nyron's changelog automation, you should configure your GitHub repository with specific merge and branch protection settings.
+
+**Key settings:**
+
+- Disable merge commits to prevent messy "Merge pull request #…" messages
+- Enable squash merging to create one clean commit per PR
+- Optionally enable branch protection rules for additional safety
+
+All PR titles should follow the conventional commit format (`type(scope): description`) since squash merging uses the PR title as the commit message.
+
+For complete setup instructions and detailed explanations, see the [GitHub repository setup guide](/docs/guides/conventional-commits#github-repository-setup).
+
 ## How do I change the changelog format?
 
 Currently, Nyron uses a predefined changelog format based on conventional commits. Customizable templates are planned for future releases.

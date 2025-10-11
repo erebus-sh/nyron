@@ -1,16 +1,48 @@
+/**
+ * @fileoverview Type definitions and validation schemas for project metadata.
+ * 
+ * This module defines the data structures used to store and validate high-level
+ * project metadata within the Nyron ecosystem, including package definitions
+ * and release information.
+ */
+
 import { type } from "arktype"
 
-// Define the type for individual project objects.
+/**
+ * Schema for validating individual project/package objects.
+ * 
+ * Each project entry contains basic identification and version information
+ * for packages managed by Nyron.
+ * 
+ * @typedef {Object} ProjectType
+ * @property {string} name - The package name/prefix identifier
+ * @property {string} version - The current semantic version string (e.g., "1.0.0")
+ */
 const projectType = type({
     name: "string",
     version: "string",
 })
 
-// Define the overall meta schema using the previously defined projectType.
+/**
+ * Schema for validating the complete meta file structure.
+ * 
+ * The meta file contains high-level project metadata including all package
+ * definitions, creation timestamp, and latest release tag information.
+ * 
+ * @typedef {Object} MetaSchema
+ * @property {ProjectType[]} packages - Array of project definitions with their current versions
+ * @property {Date} createdAt - The date when the Nyron project was created
+ * @property {string | undefined} latestTag - The latest release tag (matches pattern /^nyron-release@/) or undefined
+ */
 export const MetaSchema = type({
     packages: [projectType],
     createdAt: "Date",
     latestTag: "(/^nyron-release@/ | undefined)", // Latest tag, if it exists
 })
 
+/**
+ * TypeScript type for the complete meta structure, inferred from MetaSchema.
+ * 
+ * @typedef {import("arktype").Infer<typeof MetaSchema>} Meta
+ */
 export type Meta = typeof MetaSchema.infer
