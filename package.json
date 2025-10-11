@@ -10,7 +10,8 @@
     "dev": "turbo dev"
   },
   "devDependencies": {
-    "@nyron/cli": "workspace:*"
+    "@nyron/cli": "workspace:*",
+    "@types/node": "^24.7.2"
   },
   "keywords": [],
   "author": "tknickman",

@@ -6,19 +6,19 @@ describe("tag-parser", () => {
     it("should parse a scoped package tag", () => {
         const result = parseTag("@erebus-sh/sdk@0.0.179")
         console.log("parseTag('@erebus-sh/sdk@0.0.179') =", result)
-        expect(result).toEqual({ prefix: "@erebus-sh/sdk@", version: "0.0.179" })
+        expect(result).toEqual({ prefix: "@erebus-sh/sdk@", version: "0.0.179", prerelease: false })
     })
 
     it("should parse an unscoped package tag", () => {
         const result = parseTag("sdk@1.2.3")
         console.log("parseTag('sdk@1.2.3') =", result)
-        expect(result).toEqual({ prefix: "sdk@", version: "1.2.3" })
+        expect(result).toEqual({ prefix: "sdk@", version: "1.2.3", prerelease: false })
     })
 
     it("should parse a tag with multiple @ in prefix", () => {
         const result = parseTag("@scope/pkg@2.3.4")
         console.log("parseTag('@scope/pkg@2.3.4') =", result)
-        expect(result).toEqual({ prefix: "@scope/pkg@", version: "2.3.4" })
+        expect(result).toEqual({ prefix: "@scope/pkg@", version: "2.3.4", prerelease: false })
     })
 
     it("should return null if no @ is present", () => {
@@ -52,19 +52,19 @@ describe("tag-parser", () => {
     it("should parse a tag with pre-release version", () => {
         const result = parseTag("lib@1.2.3-beta.1")
         console.log("parseTag('lib@1.2.3-beta.1') =", result)
-        expect(result).toEqual({ prefix: "lib@", version: "1.2.3-beta.1" })
+        expect(result).toEqual({ prefix: "lib@", version: "1.2.3-beta.1", prerelease: true })
     })
 
     it("should parse a tag with build metadata", () => {
         const result = parseTag("lib@1.2.3+build.5")
         console.log("parseTag('lib@1.2.3+build.5') =", result)
-        expect(result).toEqual({ prefix: "lib@", version: "1.2.3+build.5" })
+        expect(result).toEqual({ prefix: "lib@", version: "1.2.3+build.5", prerelease: false })
     })
 
     it("should parse a tag with pre-release and build metadata", () => {
         const result = parseTag("lib@1.2.3-beta.1+build.5")
         console.log("parseTag('lib@1.2.3-beta.1+build.5') =", result)
-        expect(result).toEqual({ prefix: "lib@", version: "1.2.3-beta.1+build.5" })
+        expect(result).toEqual({ prefix: "lib@", version: "1.2.3-beta.1+build.5", prerelease: true })
     })
 
     // --- buildTag tests ---
