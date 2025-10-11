@@ -51,5 +51,28 @@ export function buildTag(prefix: string, version: string): string {
   if (!semver.valid(version)) {
     throw new Error(`Invalid semantic version: ${version}\n   → Version must follow semver format (e.g., 1.0.0)`)
   }
+
   return `${prefix}${version}`
+}
+
+
+/**
+ * Generates a specialized Nyron release tag for triggering automated actions.
+ * 
+ * This tag format is used to trigger automated workflows that will:
+ * - Extract and process the .nyron/ directory
+ * - Generate changelogs and version information
+ * - Handle release automation tasks
+ *
+ * @example
+ * ```typescript
+ * generateNyronReleaseTag()
+ * // Returns: "nyron-release@2024-01-15@14:30:25.123Z"
+ * ```
+ *
+ * @returns {string} A formatted Nyron release tag string with current timestamp.
+ */
+export function generateNyronReleaseTag(): string {
+  const date = new Date().toISOString().replace("T", "@").replace("Z", "")
+  return `nyron-release@${date}`
 }

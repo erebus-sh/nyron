@@ -3,8 +3,10 @@
   "workspaces": {
     "": {
       "name": "nyron",
-      "devDependencies": {
+      "dependencies": {
         "@nyron/cli": "workspace:*",
+      },
+      "devDependencies": {
         "@types/node": "^24.7.2",
         "turbo": "^2.5.8",
       },
@@ -40,7 +42,6 @@
       "name": "@nyron/bot",
       "version": "1.0.0",
       "dependencies": {
-        "@nyron/cli": "^0.5.0",
         "@octokit/webhooks-types": "^7.6.1",
         "probot": "^13.4.5",
       },
