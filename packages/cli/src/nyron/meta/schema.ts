@@ -8,7 +8,6 @@ const projectType = type({
 
 // Define the overall meta schema using the previously defined projectType.
 export const MetaSchema = type({
-    batch: "string",
     packages: [projectType],
     createdAt: "Date",
     latestTag: "(/^nyron-release@/ | undefined)", // Latest tag, if it exists
