@@ -2,17 +2,16 @@ import { type } from "arktype"
 
 // Define the type for individual project objects.
 const projectType = type({
-  name: "string",
-  version: "string",
+    name: "string",
+    version: "string",
 })
 
 // Define the overall meta schema using the previously defined projectType.
 export const MetaSchema = type({
-  batch: "string",
-  packages: {
-    "*": projectType,
-  },
-  createdAt: "string",
+    batch: "string",
+    packages: [projectType],
+    createdAt: "Date",
+    latestTag: "(/^nyron-release@/ | undefined)", // Latest tag, if it exists
 })
 
 export type Meta = typeof MetaSchema.infer
