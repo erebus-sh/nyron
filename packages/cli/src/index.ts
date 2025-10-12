@@ -51,10 +51,9 @@ program
 // Release
 // -----------------------------
 program
-  .command("tag")
-  .description("Create and push a new version tag")
-  .requiredOption("-p, --prefix <prefix>", "Tag prefix (e.g., @my-pkg/sdk@)")
-  .requiredOption("-v, --version <version>", "Semantic version (e.g., 1.0.0)")
+  .command("release")
+  .description("Create and push a new release")
+  .requiredOption("-d, --dry-run", "Dry run the release")
   .action(async (options) => {
     await release(options)
     return
