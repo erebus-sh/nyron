@@ -286,7 +286,7 @@ To maintain a clean, linear, and machine-readable git history compatible with ch
 | Option | State | Why |
 |--------|-------|-----|
 | Allow merge commits | ❌ Disabled | Prevents messy "Merge pull request #…" commits that break commit parsing and clutter history. |
-| Allow squash merging | ✅ Enabled | Produces one clean commit per PR using the PR title as the message. |
+| Allow squash merging | ✅ Enabled | Produces one clean commit per PR. **Important:** Change "Default commit message" dropdown from "Default message" to "Pull request title" so the PR title becomes the commit message. |
 | Allow rebase merging | ✅ Enabled (optional) | Maintains linear history if granular commits are needed. |
 
 **Settings → Branches → Branch protection rules**
