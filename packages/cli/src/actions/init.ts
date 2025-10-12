@@ -41,7 +41,7 @@ export default defineConfig({
   console.log(`   → Edit the file to configure your projects`)
 
   // Create a .nyron/ directory
-  createNyronDirectory()
+  await createNyronDirectory()
 
 
   return { created: true, filepath, overwritten: existsSync(filepath) && !!options.force }

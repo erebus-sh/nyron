@@ -38,7 +38,7 @@ export const VersionsSchema = type({
     createdAt: "string",
     packages: {
         "[string]": PackageInfoSchema.array()
-    }
+    } 
 })
 
 /**

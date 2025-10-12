@@ -41,6 +41,25 @@ export async function writeMeta(meta: Meta) {
 }
 
 /**
+ * Initializes the meta file with default values.
+ * 
+ * This function writes the default meta data to the meta file (`.nyron/meta.json`).
+ * 
+ * @async
+ * @function initMeta
+ * @returns {Promise<void>} A promise that resolves when the file has been written
+ * @throws {Error} If the file cannot be written
+ */
+export async function initMeta() {
+    const metaPath = path.join(process.cwd(), META_ROOT_PATH)
+    await writeFile(metaPath, JSON.stringify({
+        packages: [],
+        createdAt: new Date(),
+        latestTag: undefined
+    }, null, 2))
+}
+
+/**
  * Bumps the version of a specific package prefix in the meta file.
  * 
  * This function reads the current meta data, finds the package with the specified

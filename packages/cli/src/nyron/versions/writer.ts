@@ -51,3 +51,21 @@ export async function writeVersions(prefix: string, packageInfo: PackageInfo) {
     const versionsPath = path.join(process.cwd(), VERSIONS_ROOT_PATH)
     await writeFile(versionsPath, JSON.stringify(versions, null, 2))
 }
+
+/**
+ * Initializes the versions file with default values.
+ * 
+ * This function writes the default versions data to the versions file (`.nyron/versions.json`).
+ * 
+ * @async
+ * @function initVersions
+ * @returns {Promise<void>} A promise that resolves when the file has been written
+ * @throws {Error} If the file cannot be written
+ */
+export async function initVersions() {
+    const versionsPath = path.join(process.cwd(), VERSIONS_ROOT_PATH)
+    await writeFile(versionsPath, JSON.stringify({
+        createdAt: new Date(),
+        packages: {}
+    }, null, 2))
+}

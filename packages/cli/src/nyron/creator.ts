@@ -4,7 +4,8 @@ import { META_ROOT_PATH } from "./meta/file-parser"
 import { VERSIONS_ROOT_PATH } from "./versions/file-parser"
 import { fileExists, folderExists, writeFile } from "../core/files"
 import { mkdir } from "fs/promises"
-import { setMetaCreatedAt } from "./meta/writer"
+import { initMeta } from "./meta/writer"
+import { initVersions } from "./versions/writer"
 
 /**
  * Initializes the Nyron workspace by creating the required directory structure and metadata files.
@@ -63,5 +64,9 @@ export async function createNyronDirectory(): Promise<void> {
         await writeFile(versionsFile, "{}");
     }
 
-    await setMetaCreatedAt(new Date())
+    // Initialize meta file
+    await initMeta()
+
+    // Initialize versions file
+    await initVersions()
 }
