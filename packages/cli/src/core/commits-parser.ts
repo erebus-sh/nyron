@@ -12,7 +12,7 @@
  */
 
 import type { CommitDiff } from "../github/types"
-import type { ParsedCommits } from "./types"
+import type { ParsedCommit, ParsedCommits } from "./types"
 
 const PullRequestRE = /\([ a-z]*(#\d+)\s*\)/gm;
 const IssueRE = /(#\d+)/gm;
@@ -110,7 +110,8 @@ export function parseCommits(commits: CommitDiff[]): ParsedCommits {
         pullRequestNumber,
         pullRequestUrl,
         issueNumber,
-        issueUrl
+        issueUrl,
+        affectedFolders: commit.affectedFolders
       })
       continue
     }
@@ -137,7 +138,8 @@ export function parseCommits(commits: CommitDiff[]): ParsedCommits {
       pullRequestNumber,
       pullRequestUrl,
       issueNumber,
-      issueUrl
+      issueUrl,
+      affectedFolders: commit.affectedFolders
     })
   }
   return groups
@@ -261,7 +263,8 @@ export interface OrganizedCommits {
  * 
  * This function transforms the structured commit data into formatted strings suitable
  * for changelog generation. Each commit is formatted with scope labels (when applicable),
- * author attribution with GitHub links, and commit hash links for easy navigation.
+ * author attribution with GitHub links, commit hash links, pull request references,
+ * issue references, and affected folders for comprehensive context.
  * 
  * @param parsedCommits - The result from parseCommits() containing structured commit data
  * @returns An object containing three arrays of formatted commit strings:
@@ -275,43 +278,64 @@ export interface OrganizedCommits {
  * const organized = organizeForChangelog(parsed);
  * // Returns:
  * // {
- * //   features: ["**api**: add authentication ([@user](https://github.com/user)) [[abc1234](https://github.com/repo/commit/abc1234...)]"],
- * //   fixes: ["resolve memory leak ([@user](https://github.com/user)) [[def5678](https://github.com/repo/commit/def5678...)]"],
- * //   chores: ["update dependencies ([@user](https://github.com/user)) [[ghi9012](https://github.com/repo/commit/ghi9012...)]"]
+ * //   features: ["**api**: add authentication ([@user](https://github.com/user)) [[abc1234](https://github.com/repo/commit/abc1234...)] [#123](pr-url) [📁 packages/auth]"],
+ * //   fixes: ["resolve memory leak ([@user](https://github.com/user)) [[def5678](https://github.com/repo/commit/def5678...)] [#456](issue-url)"],
+ * //   chores: ["update dependencies ([@user](https://github.com/user)) [[ghi9012](https://github.com/repo/commit/ghi9012...)] [📁 packages/cli, apps/docs]"]
  * // }
  * ```
  */
-export function organizeForChangelog(parsedCommits: ParsedCommits): OrganizedCommits {
+export function organizCommitsForChangelog(parsedCommits: ParsedCommits): OrganizedCommits {
   const features: string[] = []
   const fixes: string[] = []
   const chores: string[] = []
   
+  /**
+   * Helper function to format a single commit with all metadata
+   */
+  const formatCommit = (commit: ParsedCommit): string => {
+    const scopeLabel = commit.scope && commit.scope !== "general" ? `**${commit.scope}**: ` : ""
+    const authorLink = commit.githubUser 
+      ? `[@${commit.githubUser}](https://github.com/${commit.githubUser})`
+      : commit.author
+    const commitLink = commit.url || `https://github.com/${commit.repo}/commit/${commit.hash}`
+    const shortHash = commit.hash.substring(0, 7)
+    
+    // Build the base message
+    let formatted = `${scopeLabel}${commit.message} (${authorLink}) [[${shortHash}](${commitLink})]`
+    
+    // Add PR reference if available
+    if (commit.pullRequestNumber && commit.pullRequestUrl) {
+      formatted += ` [#${commit.pullRequestNumber}](${commit.pullRequestUrl})`
+    }
+    
+    // Add issue reference if available (and not the same as PR)
+    if (commit.issueNumber && commit.issueUrl && commit.issueNumber !== commit.pullRequestNumber) {
+      formatted += ` [#${commit.issueNumber}](${commit.issueUrl})`
+    }
+    
+    // Add affected folders if available
+    if (commit.affectedFolders && commit.affectedFolders.length > 0) {
+      const folders = commit.affectedFolders.join(', ')
+      formatted += ` [📁 ${folders}]`
+    }
+    
+    return formatted
+  }
+  
   // Process Features
   if (parsedCommits["Features"]) {
-    for (const [scope, commits] of Object.entries(parsedCommits["Features"])) {
+    for (const commits of Object.values(parsedCommits["Features"])) {
       for (const commit of commits) {
-        const scopeLabel = scope !== "general" ? `**${scope}**: ` : ""
-        const authorLink = commit.githubUser 
-          ? `[@${commit.githubUser}](https://github.com/${commit.githubUser})`
-          : commit.author
-        const commitLink = commit.url || `https://github.com/${commit.repo}/commit/${commit.hash}`
-        const shortHash = commit.hash.substring(0, 7)
-        features.push(`${scopeLabel}${commit.message} (${authorLink}) [[${shortHash}](${commitLink})]`)
+        features.push(formatCommit(commit))
       }
     }
   }
   
   // Process Bug Fixes
   if (parsedCommits["Bug Fixes"]) {
-    for (const [scope, commits] of Object.entries(parsedCommits["Bug Fixes"])) {
+    for (const commits of Object.values(parsedCommits["Bug Fixes"])) {
       for (const commit of commits) {
-        const scopeLabel = scope !== "general" ? `**${scope}**: ` : ""
-        const authorLink = commit.githubUser 
-          ? `[@${commit.githubUser}](https://github.com/${commit.githubUser})`
-          : commit.author
-        const commitLink = commit.url || `https://github.com/${commit.repo}/commit/${commit.hash}`
-        const shortHash = commit.hash.substring(0, 7)
-        fixes.push(`${scopeLabel}${commit.message} (${authorLink}) [[${shortHash}](${commitLink})]`)
+        fixes.push(formatCommit(commit))
       }
     }
   }
@@ -320,15 +344,9 @@ export function organizeForChangelog(parsedCommits: ParsedCommits): OrganizedCom
   const choreTypes = ["Chores", "Refactoring", "Performance", "Documentation", "Tests", "Styling", "CI/CD", "Reverts", "Merges", "Deprecated", "Other", "other"]
   for (const type of choreTypes) {
     if (parsedCommits[type]) {
-      for (const [scope, commits] of Object.entries(parsedCommits[type])) {
+      for (const commits of Object.values(parsedCommits[type])) {
         for (const commit of commits) {
-          const scopeLabel = scope !== "general" ? `**${scope}**: ` : ""
-          const authorLink = commit.githubUser 
-            ? `[@${commit.githubUser}](https://github.com/${commit.githubUser})`
-            : commit.author
-          const commitLink = commit.url || `https://github.com/${commit.repo}/commit/${commit.hash}`
-          const shortHash = commit.hash.substring(0, 7)
-          chores.push(`${scopeLabel}${commit.message} (${authorLink}) [[${shortHash}](${commitLink})]`)
+          chores.push(formatCommit(commit))
         }
       }
     }

@@ -53,7 +53,7 @@ export interface CommitDiff {
   affectedFolders: string[]
   repo: string
   author: string
-  githubUser?: string
+  githubUser: string
   avatar?: string
   url?: string
 }

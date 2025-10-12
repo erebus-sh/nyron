@@ -10,8 +10,7 @@
     "clean": "rm -rf dist",
     "build:binary": "bun build src/index.ts --outfile dist/index.js --target bun",
     "build:esm": "tsdown --config build.config.ts",
-    "copy:templates": "cp -r src/templates dist/templates",
-    "build": "bun run clean && bun run build:binary && bun run build:esm && bun run copy:templates",
+    "build": "bun run clean && bun run build:binary && bun run build:esm",
     "cli": "bun run build && bun dist/index.js",
     "prepublishOnly": "bun run build"
   },

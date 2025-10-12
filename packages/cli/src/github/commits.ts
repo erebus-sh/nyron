@@ -50,7 +50,7 @@ async function fetchCommitsFromComparison(
       message: commit.commit.message,
       author: gitFormatAuthor,
       repo,
-      githubUser: commit.author?.login,
+      githubUser: commit.author?.login!,
       avatar: commit.author?.avatar_url,
       url: commit.html_url,
       affectedFolders,

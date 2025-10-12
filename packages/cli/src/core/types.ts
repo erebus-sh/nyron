@@ -18,6 +18,7 @@ export interface ParsedCommit {
     url?: string
     issueUrl?: string
     pullRequestUrl?: string
+    affectedFolders: string[]
   }
   
   export interface ParsedCommits {

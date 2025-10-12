@@ -1,10 +1,46 @@
-import { readFileSync } from "fs"
-import { resolve } from "path"
+
 import Handlebars from "handlebars"
 
-export function renderTemplate(templateName: string, data: any) {
-  const templatePath = resolve(__dirname, `./templates/changelog/${templateName}.md`)
-  const raw = readFileSync(templatePath, "utf-8")
-  const compile = Handlebars.compile(raw)
+export interface ChangelogTemplateData {
+  versions: string[]
+  features: string[]
+  fixes: string[]
+  chores: string[]
+}
+
+export const changelogTemplate = `
+# Changelog release notes
+
+## Updated packages
+
+{{#each versions}}
+- {{this}}
+{{/each}}
+
+{{#if features}}
+### ✨ Features
+{{#each features}}
+- {{this}}
+{{/each}}
+{{/if}}
+
+{{#if fixes}}
+### 🐛 Fixes
+{{#each fixes}}
+- {{this}}
+{{/each}}
+{{/if}}
+
+{{#if chores}}
+### 🧹 Chores
+{{#each chores}}
+- {{this}}
+{{/each}}
+{{/if}}
+
+`
+
+export function renderTemplate(data: ChangelogTemplateData) {
+  const compile = Handlebars.compile(changelogTemplate)
   return compile(data)
 }

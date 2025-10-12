@@ -1,21 +1,12 @@
 import { mkdir } from "fs/promises"
 import { writeFile, fileExists } from "../../core/files"
-import { renderTemplate } from "../../utils/renderTemplate"
 import { buildChangelogPath, buildChangelogDir } from "./file-parser"
-import type { WriteChangelogOptions } from "./types"
+import { NYRON_RELEASE_PREFIX } from "../../core/tag-parser"
 
-export async function writeChangelog(options: WriteChangelogOptions) {
-    const content = renderTemplate("default", {
-        package: options.prefix,
-        version: options.version,
-        date: new Date().toISOString().split("T")[0],
-        features: options.features,
-        fixes: options.fixes,
-        chores: options.chores,
-    })
+export async function writeChangelog(nyronReleaseTag: string, changelog: string) {
     
-    const changelogDir = buildChangelogDir(options.prefix)
-    const changelogPath = buildChangelogPath(options.prefix, options.version)
+    const changelogDir = buildChangelogDir(NYRON_RELEASE_PREFIX)
+    const changelogPath = buildChangelogPath(NYRON_RELEASE_PREFIX, nyronReleaseTag)
     
     // Ensure the directory exists
     await mkdir(changelogDir, { recursive: true })
@@ -27,6 +18,6 @@ export async function writeChangelog(options: WriteChangelogOptions) {
     }
     
     // Write the file (will overwrite if exists)
-    await writeFile(changelogPath, content)
+    await writeFile(changelogPath, changelog)
     console.log(`✅ Changelog written: ${changelogPath}`)
 }
