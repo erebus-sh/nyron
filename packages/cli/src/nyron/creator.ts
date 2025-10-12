@@ -24,9 +24,9 @@ import { setMetaCreatedAt } from "./meta/writer"
 export async function createNyronDirectory(): Promise<void> {
     const cwd = process.cwd();
     const nyronDir = path.resolve(cwd, ".nyron");
-    const changelogDir = path.resolve(nyronDir, CHANGELOG_ROOT_PATH);
-    const metaFile = path.resolve(nyronDir, META_ROOT_PATH);
-    const versionsFile = path.resolve(nyronDir, VERSIONS_ROOT_PATH);
+    const changelogDir = path.resolve(cwd, CHANGELOG_ROOT_PATH);
+    const metaFile = path.resolve(cwd, META_ROOT_PATH);
+    const versionsFile = path.resolve(cwd, VERSIONS_ROOT_PATH);
 
     // Guard: check if everything already exists
     let ready = true;
