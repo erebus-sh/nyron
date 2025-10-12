@@ -1,6 +1,6 @@
 {
   "name": "@nyron/cli",
-  "version": "0.6.6",
+  "version": "0.7.0",
   "type": "module",
   "bin": {
     "nyron": "./dist/index.js"
@@ -13,7 +13,7 @@
     "build": "bun run clean && bun run build:binary && bun run build:esm",
     "cli": "bun run build && bun dist/index.js",
     "prepublishOnly": "bun run build",
-    "watch": "chokidar 'src/**/*.ts' -c 'bun run build'"
+    "watch": "chokidar './src/**/*.ts' -c 'bun run build'"
   },
   "dependencies": {
     "arktype": "^2.1.22",
