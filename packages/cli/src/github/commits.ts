@@ -22,9 +22,21 @@ async function fetchCommitsFromComparison(
     head,
   })
 
+  // Fetch detailed commit information for each commit to get the files
+  // TODO: this might spam the hell out of github api so we might defalute
+  //       to simple-git later
+  const commitsWithFiles = await Promise.all(
+    comparison.commits.map(async (commit) => {
+      const { data: detailedCommit } = await octokit.rest.repos.getCommit({
+        owner,
+        repo: repoName,
+        ref: commit.sha,
+      })
+      return detailedCommit
+    })
+  )
 
-
-  return comparison.commits.map((commit) => {
+  return commitsWithFiles.map((commit) => {
     // Extract author in git format: "John Doe <john.doe@example.com>"
     const authorName = commit.commit.author?.name || "unknown";
     const authorEmail = commit.commit.author?.email || "unknown";

@@ -1,6 +1,6 @@
 {
   "name": "@nyron/cli",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "type": "module",
   "bin": {
     "nyron": "./dist/index.js"
@@ -12,7 +12,8 @@
     "build:esm": "tsdown --config build.config.ts",
     "build": "bun run clean && bun run build:binary && bun run build:esm",
     "cli": "bun run build && bun dist/index.js",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "watch": "chokidar 'src/**/*.ts' -c 'bun run build'"
   },
   "dependencies": {
     "arktype": "^2.1.22",
@@ -28,6 +29,7 @@
   "devDependencies": {
     "@types/bun": "latest",
     "@types/semver": "^7.7.1",
+    "chokidar-cli": "^3.0.0",
     "tsdown": "^0.15.6"
   },
   "peerDependencies": {

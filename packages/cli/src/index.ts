@@ -6,6 +6,7 @@ import { release } from "./actions/release"
 import { BumpType } from "./core/types"
 import { pushNyronReleaseTagAction } from "./actions/pushTag"
 import { version } from '../package.json'
+import { fix } from "./actions/fix"
 
 import dotenv from "dotenv"
 
@@ -66,6 +67,14 @@ program
   .command("push-tag")
   .description("Push a new nyron release tag")
   .action(pushNyronReleaseTagAction)
+
+// -----------------------------
+// fix
+// -----------------------------
+program
+  .command("fix")
+  .description("Fix the release")
+  .action(fix)
 
 // -----------------------------
 // default help
