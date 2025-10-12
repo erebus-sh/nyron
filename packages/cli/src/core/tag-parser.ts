@@ -61,12 +61,12 @@ export function buildTag(prefix: string, version: string): string {
 /**
  * Parses a Nyron release tag and extracts the date information.
  * 
- * @param {string} tag - The Nyron release tag to parse (e.g., "nyron-release@2024-01-15@14:30:25.123").
+ * @param {string} tag - The Nyron release tag to parse (e.g., "nyron-release@2024-01-15@14-30-25.123").
  * @returns {Date | null} The parsed Date object if the tag is valid, or null if parsing fails.
  * 
  * @example
  * ```typescript
- * parseNyronReleaseTag("nyron-release@2024-01-15@14:30:25.123")
+ * parseNyronReleaseTag("nyron-release@2024-01-15@14-30-25.123")
  * // Returns: Date object representing 2024-01-15T14:30:25.123Z
  * 
  * parseNyronReleaseTag("invalid-tag")
@@ -82,8 +82,20 @@ export function parseNyronReleaseTag(tag: string): Date | null {
   // Extract the date part after the prefix
   const datePart = tag.slice(NYRON_RELEASE_PREFIX.length + 1) // +1 for the "@"
   
-  // Convert back to ISO format by replacing "@" with "T" and adding "Z"
-  const isoString = datePart.replace("@", "T") + "Z"
+  // Convert back to ISO format
+  // First replace "@" with "T" to separate date and time
+  const withT = datePart.replace("@", "T")
+  
+  // Split into date and time parts
+  const [datePortion, timePortion] = withT.split("T")
+  
+  // Validate that we have both date and time portions
+  if (!datePortion || !timePortion) {
+    return null
+  }
+  
+  // Only replace dashes in the time portion with colons
+  const isoString = `${datePortion}T${timePortion.replace(/-/g, ":")}Z`
   
   // Parse the date and validate
   const date = new Date(isoString)
@@ -107,12 +119,12 @@ export function parseNyronReleaseTag(tag: string): Date | null {
  * @example
  * ```typescript
  * generateNyronReleaseTag()
- * // Returns: "nyron-release@2024-01-15@14:30:25.123"
+ * // Returns: "nyron-release@2024-01-15@14-30-25.123"
  * ```
  *
  * @returns {string} A formatted Nyron release tag string with current timestamp.
  */
 export function generateNyronReleaseTag(): string {
-  const date = new Date().toISOString().replace("T", "@").replace("Z", "")
+  const date = new Date().toISOString().replace("T", "@").replace(/:/g, "-").replace("Z", "")
   return `${NYRON_RELEASE_PREFIX}@${date}`
 }

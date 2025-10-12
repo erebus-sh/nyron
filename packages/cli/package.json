@@ -1,6 +1,6 @@
 {
   "name": "@nyron/cli",
-  "version": "0.5.3",
+  "version": "0.5.9",
   "type": "module",
   "bin": {
     "nyron": "./dist/index.js"

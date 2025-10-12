@@ -4,6 +4,8 @@ import { bump } from "./actions/bump"
 import { init } from "./actions/init"
 import { release } from "./actions/release"
 import { BumpType } from "./core/types"
+import { pushNyronReleaseTagAction } from "./actions/pushTag"
+import { version } from '../package.json'
 
 import dotenv from "dotenv"
 
@@ -14,7 +16,7 @@ dotenv.config({
 program
   .name("nyron")
   .description("Nyron CLI — smart multi-package versioning and changelog management")
-  .version("0.5.3")
+  .version(version)
 
 // -----------------------------
 // bump
@@ -57,6 +59,14 @@ program
     await release(options)
     return
   })
+
+// -----------------------------
+// pushTag
+// -----------------------------
+program
+  .command("push-tag")
+  .description("Push a new nyron release tag")
+  .action(pushNyronReleaseTagAction)
 
 // -----------------------------
 // default help

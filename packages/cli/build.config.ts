@@ -5,7 +5,7 @@ export default defineConfig({
     // Main entry point
     index: "./src/index.ts",
     // Config system
-    config: "./src/config/index.ts",
+    "config/index": "./src/config/index.ts",
     "config/types": "./src/config/types.ts",
     "config/define": "./src/config/define.ts",
     "config/loader": "./src/config/loader.ts",
