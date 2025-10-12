@@ -6,6 +6,7 @@
  */
 
 import path from "path"
+import { type } from "arktype"
 import { readFile } from "../../core/files"
 import { VERSIONS_ROOT_PATH } from "./file-parser"
 import { VersionsSchema, type Versions } from "./schema"
@@ -32,5 +33,11 @@ import { VersionsSchema, type Versions } from "./schema"
 export async function readVersions(): Promise<Versions> {
     const versionsPath = path.join(process.cwd(), VERSIONS_ROOT_PATH)
     const versions = await readFile(versionsPath)
-    return VersionsSchema.assert(JSON.parse(versions))
+    const result = VersionsSchema(JSON.parse(versions))
+    
+    if (result instanceof type.errors) {
+        throw new Error(`Invalid versions file: ${result.summary}`)
+    }
+    
+    return result
 }

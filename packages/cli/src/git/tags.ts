@@ -2,8 +2,7 @@
 // It parse prefixes and extract versions
 
 import { simpleGit } from "simple-git"
-import { isNewer } from "../core/semver"
-import { NYRON_RELEASE_PREFIX } from "../core/tag-parser"
+import { NYRON_RELEASE_PREFIX, parseNyronReleaseTag } from "../core/tag-parser"
 
 const git = simpleGit()
 
@@ -19,27 +18,28 @@ export async function getTags(prefix: string) {
 }
 
 /**
- * Returns the highest semantic version tag that starts with the given prefix.
- * Uses semver comparison to guard against misordered or irregular tag lists.
+ * Returns the latest Nyron release tag based on date comparison.
+ * Nyron release tags use date format: nyron-release@2024-01-15@14-30-25.123
  *
- * @param {string} prefix - Required tag prefix (e.g., "app@").
- * @returns {Promise<string|null>} The best tag name or null if none exist.
+ * @returns {Promise<string|null>} The latest tag name or null if none exist.
  */
 export async function getLatestNyronReleaseTag() {
   const tags = await getTags(NYRON_RELEASE_PREFIX)
   if (tags.length === 0) return null
 
-  const baseline = "0.0.0"
   let bestTag: string | null = null
-  let bestVersion: string = baseline
+  let bestDate: Date | null = null
 
   for (const tag of tags) {
-    const version = tag.slice(NYRON_RELEASE_PREFIX.length)
-
-    // Only consider candidates that are newer than baseline and current best
-    if (isNewer(version, baseline) && (bestTag === null || isNewer(version, bestVersion))) {
-      bestVersion = version
-      bestTag = tag // Tag is already prefixed
+    const date = parseNyronReleaseTag(tag)
+    
+    // Skip invalid tags that don't parse to valid dates
+    if (date === null) continue
+    
+    // Compare dates - later dates are "newer"
+    if (bestDate === null || date > bestDate) {
+      bestDate = date
+      bestTag = tag
     }
   }
 

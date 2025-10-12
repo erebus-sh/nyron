@@ -6,6 +6,7 @@
  */
 
 import path from "path"
+import { type } from "arktype"
 import { readFile } from "../../core/files"
 import { MetaSchema, type Meta } from "./schema"
 
@@ -32,5 +33,11 @@ import { MetaSchema, type Meta } from "./schema"
 export async function readMeta(): Promise<Meta> {
     const metaPath = path.join(process.cwd(), ".nyron", "meta.json")
     const meta = await readFile(metaPath)
-    return MetaSchema.assert(JSON.parse(meta))
+    const result = MetaSchema(JSON.parse(meta))
+    
+    if (result instanceof type.errors) {
+        throw new Error(`Invalid meta file: ${result.summary}`)
+    }
+    
+    return result
 }
