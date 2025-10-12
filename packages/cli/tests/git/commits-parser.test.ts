@@ -1,4 +1,4 @@
-import { parseCommits, organizeForChangelog } from "../src/git/commits-parser"
+import { parseCommits, organizeForChangelog } from "../../src/core/commits-parser"
 import { describe, it, expect } from "bun:test"
 
 describe("commits-parser", () => {
