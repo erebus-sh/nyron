@@ -59,9 +59,9 @@ export default defineConfig({
 })
 ```
 
-## Setup GitHub Token (Optional but Recommended)
+## Setup GitHub Token (Required)
 
-For enriched changelogs with author links and commit URLs, set a GitHub token:
+Nyron requires a GitHub token to function properly:
 
 ```bash
 # Create .env in your project root
@@ -70,30 +70,37 @@ echo "GITHUB_TOKEN=your_github_token_here" > .env
 
 Generate a token at [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
 
-<Callout type="info">
-Without a GitHub token, Nyron will still work, but changelogs won't include GitHub usernames, avatars, or commit URLs—just the git author name.
+<Callout type="error">
+A GitHub token is required for Nyron to access repository metadata, commit information, and create releases. Without it, Nyron will not work.
 </Callout>
 
 ## Start Using Nyron
 
-Now you're ready to use Nyron! Here are some common commands to get started:
+Now you're ready to use Nyron! Here's the typical workflow:
 
-### See what commits you have since the last release
-
-```bash
-npx @nyron/cli diff
-```
-
-### Bump version and auto-generate changelog
+### 1. Bump version and auto-generate changelog
 
 ```bash
 npx @nyron/cli bump --type minor --prefix v
 ```
 
-### Create and push a git tag
+### 2. Commit your changes
 
 ```bash
-npx @nyron/cli tag --prefix v --version 1.2.0
+git add .
+git commit -m "chore: bump version to 1.2.0"
+```
+
+### 3. Create and push nyron-release tag
+
+```bash
+npx @nyron/cli push-tag
+```
+
+### 4. Create GitHub release
+
+```bash
+npx @nyron/cli release
 ```
 
 ## Next Steps

@@ -1,0 +1,165 @@
+---
+title: nyron push-tag
+description: Create and push nyron-release tags for automated workflow triggers
+---
+
+# nyron push-tag
+
+Create and push nyron-release tags that trigger the automated release workflow.
+
+## Usage
+
+```bash
+npx @nyron/cli push-tag
+```
+
+## What It Does
+
+The `push-tag` command:
+
+1. **Generates a unique nyron-release tag** with current timestamp
+2. **Creates the git tag** locally  
+3. **Pushes the tag** to the remote repository
+4. **Triggers automated workflows** that process the .nyron/ directory
+
+## Tag Format
+
+Nyron-release tags follow this format:
+```
+nyron-release@YYYY-MM-DD@HH-MM-SS.mmm
+```
+
+**Example:**
+```
+nyron-release@2024-01-15@14-30-25.123
+```
+
+This format ensures:
+- **Chronological ordering** of releases
+- **Unique timestamps** to avoid conflicts
+- **Machine-readable** format for automated processing
+
+## Prerequisites
+
+- **Required:** Changes must be committed to git
+- **Required:** `.nyron/` directory must contain version metadata (created by `bump` command)
+- **Recommended:** Push permissions to the repository
+
+## Typical Workflow
+
+The `push-tag` command is used after bumping versions:
+
+```bash
+# 1. Bump version and generate changelog
+npx @nyron/cli bump --type minor --prefix v
+
+# 2. Commit changes  
+git add .
+git commit -m "chore: bump version to 1.2.0"
+
+# 3. Create and push nyron-release tag
+npx @nyron/cli push-tag
+
+# 4. Create GitHub release
+npx @nyron/cli release
+```
+
+## What Happens Next
+
+After pushing a nyron-release tag:
+
+1. **Automated workflows** can detect the new tag
+2. **Version information** is extracted from .nyron/ directory  
+3. **Changelog generation** becomes possible via `release` command
+4. **Release automation** can process the accumulated changes
+
+## Examples
+
+### Basic usage
+
+```bash
+npx @nyron/cli push-tag
+```
+
+Sample output:
+```
+🏷️  Creating nyron-release tag...
+✓ Generated tag: nyron-release@2024-01-15@14-30-25.123
+✓ Tag created and pushed successfully
+```
+
+### After version bump
+
+```bash
+# Bump first
+npx @nyron/cli bump --type minor --prefix v
+
+# Commit the changes
+git add .
+git commit -m "chore: bump version to 1.2.0"  
+
+# Push the nyron-release tag
+npx @nyron/cli push-tag
+```
+
+## Understanding Nyron Tags
+
+Nyron uses a dual-tag system:
+
+### Project Tags (from bump command)
+- Format: `v1.2.0`, `@pkg/name@1.2.0`  
+- **Purpose:** Mark specific package versions
+- **Created by:** `bump` command
+- **Used for:** Version tracking, changelog boundaries
+
+### Nyron-Release Tags (from push-tag command)  
+- Format: `nyron-release@2024-01-15@14-30-25.123`
+- **Purpose:** Trigger release automation
+- **Created by:** `push-tag` command  
+- **Used for:** Workflow triggers, release boundaries
+
+## Error Handling
+
+**Git not clean:**
+```
+Error: Working directory not clean
+```
+Commit your changes first before running `push-tag`.
+
+**No .nyron/ directory:**
+```
+Error: No version metadata found
+```
+Run `nyron bump` first to generate version information.
+
+**Push permission denied:**
+```
+Error: Permission denied (publickey)
+```
+Ensure you have push access to the repository.
+
+## Integration with CI/CD
+
+Nyron-release tags can trigger automated workflows:
+
+```yaml
+# .github/workflows/release.yml
+on:
+  push:
+    tags:
+      - 'nyron-release@*'
+      
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create Release
+        run: npx @nyron/cli release
+```
+
+## Next Steps
+
+- Use [`nyron release`](/docs/commands/release) to create GitHub releases
+- Learn about the complete [workflow](/docs/guides/workflow)  
+- Understand [how Nyron works](/docs/guides/how-it-works)

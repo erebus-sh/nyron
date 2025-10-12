@@ -1,0 +1,148 @@
+---
+title: nyron release
+description: Create GitHub releases with auto-generated changelogs
+---
+
+# nyron release
+
+Create GitHub releases with auto-generated changelogs based on commits between nyron-release tags.
+
+## Usage
+
+```bash
+npx @nyron/cli release
+```
+
+### Preview changelog without creating release
+
+```bash
+npx @nyron/cli release --dry-run
+```
+
+## Options
+
+### `-d, --dry-run`
+
+**Optional.** Preview the changelog without creating an actual GitHub release.
+
+```bash
+npx @nyron/cli release --dry-run
+```
+
+## How It Works
+
+The `release` command works by:
+
+1. **Finding the latest nyron-release tag** - Looks for tags like `nyron-release@2024-01-15@14-30-25.123`
+2. **Fetching commits** since that tag to HEAD
+3. **Parsing conventional commits** to extract features, fixes, and other changes
+4. **Reading version information** from the .nyron/ directory
+5. **Generating a changelog** in markdown format
+6. **Creating a GitHub release** with the changelog as the description
+
+## Prerequisites
+
+- **Required:** A `GITHUB_TOKEN` environment variable must be set
+- **Required:** At least one nyron-release tag must exist (created by `push-tag`)
+- **Required:** Commits must follow [conventional commit format](/docs/guides/conventional-commits)
+
+## What It Does
+
+The release command:
+
+- Creates a GitHub release on your repository
+- Uses an auto-generated changelog as the release description
+- Tags the release with a new nyron-release tag
+- Groups commits by type (Features, Bug Fixes, Chores, etc.)
+- Includes author information and commit links
+
+## Examples
+
+### Create a release
+
+```bash
+npx @nyron/cli release
+```
+
+### Preview what will be released
+
+```bash
+npx @nyron/cli release --dry-run
+```
+
+Sample output:
+```
+📍 Step 1: Finding latest release tag...
+✓ Found tag: nyron-release@2024-01-15@14-30-25.123
+
+📍 Step 2: Fetching commits since last release...
+✓ Found 5 commit(s)
+
+📍 Step 3: Parsing commits...
+✓ Parsed commits into groups (features, fixes, etc.)
+
+📍 Step 4: Reading version information...
+✓ Loaded version data for 2 package(s)
+
+📍 Step 5: Generating changelog...
+✓ Changelog generated (1,234 characters)
+
+📍 Step 6: Preview (DRY RUN - no release created)
+================================================================================
+## Features
+- **api**: add OAuth2 login ([@username](https://github.com/username)) [[a1b2c3d](https://github.com/owner/repo/commit/a1b2c3d)]
+
+## Bug Fixes  
+- **auth**: resolve token refresh issue ([@username](https://github.com/username)) [[e4f5g6h](https://github.com/owner/repo/commit/e4f5g6h)]
+================================================================================
+
+✅ Dry run completed - no release was created
+```
+
+## Typical Workflow
+
+The `release` command is typically used as the final step:
+
+```bash
+# 1. Bump version and generate changelog
+npx @nyron/cli bump --type minor --prefix v
+
+# 2. Commit changes
+git add .
+git commit -m "chore: bump version to 1.2.0"
+
+# 3. Create and push nyron-release tag
+npx @nyron/cli push-tag
+
+# 4. Create GitHub release
+npx @nyron/cli release
+```
+
+See the complete [workflow guide](/docs/guides/workflow) for more details.
+
+## Error Handling
+
+**No nyron-release tag found:**
+```
+Error: No nyron release tag found
+   → Make sure to push the tag with nyron tool
+```
+Run `npx @nyron/cli push-tag` first.
+
+**No commits found:**
+```
+⚠️  No commits found between tags - skipping release
+```
+This means there are no new commits since the last release.
+
+**Missing GitHub token:**
+```
+Error: GITHUB_TOKEN environment variable is required
+```
+Set your GitHub token in a `.env` file or environment variable.
+
+## Next Steps
+
+- Learn about [`nyron push-tag`](/docs/commands/push-tag) command
+- Understand the complete [workflow](/docs/guides/workflow)
+- Set up [GitHub repository settings](/docs/guides/conventional-commits#github-repository-setup)

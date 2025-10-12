@@ -53,7 +53,7 @@ program
 program
   .command("release")
   .description("Create and push a new release")
-  .requiredOption("-d, --dry-run", "Dry run the release")
+  .option("-d, --dry-run", "Dry run the release")
   .action(async (options) => {
     await release(options)
     return

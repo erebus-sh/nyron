@@ -74,9 +74,9 @@ export default defineConfig({
 })
 ```
 
-### 3. Setup GitHub Token (Optional but Recommended)
+### 3. Setup GitHub Token (Required)
 
-For enriched changelogs with author links and commit URLs, set a GitHub token:
+Nyron requires a GitHub token to function properly:
 
 ```bash
 # Create .env in your project root
@@ -88,21 +88,25 @@ Generate a token at [GitHub Settings → Developer settings → Personal access 
 ### 4. Start Using Nyron
 
 ```bash
-# See what commits you have since the last release
-npx @nyron/cli diff
-
 # Bump version and auto-generate changelog
 npx @nyron/cli bump --type minor --prefix v
 
-# Create and push a git tag
-npx @nyron/cli tag --prefix v --version 1.2.0
+# Commit your changes
+git add .
+git commit -m "chore: bump version to 1.2.0"
+
+# Create and push nyron-release tag
+npx @nyron/cli push-tag
+
+# Create GitHub release with auto-generated changelog
+npx @nyron/cli release
 ```
 
 ---
 
 ## How It Works
 
-Nyron reads your Git history and parses **conventional commits** to generate structured changelogs automatically.
+Nyron reads your Git history and parses **conventional commits** to generate structured changelogs automatically. It uses a dual-tag system with nyron-release tags to trigger automated workflows and compare changes between releases.
 
 ### Conventional Commits Format
 
@@ -132,12 +136,13 @@ Nyron recognizes and groups commits by type:
 
 ### What Nyron Does
 
-1. **Fetches commits** since your last tagged release
-2. **Filters out meta commits** (version bumps, changelog updates)
-3. **Parses conventional commit syntax** to extract type, scope, and message
-4. **Groups commits** into Features, Bug Fixes, and Chores
-5. **Enriches with GitHub data** (author usernames, avatars, commit URLs)
-6. **Generates markdown** formatted for changelogs
+1. **Bump Command**: Updates version, generates changelog, creates metadata
+2. **Push-Tag Command**: Creates nyron-release tags with timestamps
+3. **Release Command**: Compares nyron-release tags to HEAD, generates GitHub releases
+4. **Parses conventional commit syntax** to extract type, scope, and message
+5. **Groups commits** into Features, Bug Fixes, and Chores
+6. **Enriches with GitHub data** (author usernames, avatars, commit URLs)
+7. **Generates markdown** formatted for changelogs and releases
 
 **Example Output:**
 
@@ -167,22 +172,6 @@ npx @nyron/cli init
 
 ---
 
-### `nyron diff`
-
-Show commits since the last release for all or specific projects.
-
-```bash
-npx @nyron/cli diff
-npx @nyron/cli diff --prefix @my-pkg/sdk@
-```
-
-**Options:**
-- `-f, --prefix <prefix>` - Filter by tag prefix
-
-Use this to preview what will go into your next changelog.
-
----
-
 ### `nyron bump`
 
 Bump project version and generate changelog automatically.
@@ -199,21 +188,41 @@ npx @nyron/cli bump --type minor --prefix v
 1. Fetches commits since last tag
 2. Generates changelog based on commits
 3. Updates `package.json` version
-4. Optionally prompts to create a git tag
+4. Creates metadata in `.nyron/` directory
 
 ---
 
-### `nyron tag`
+### `nyron push-tag`
 
-Create and push a new version tag.
+Create and push nyron-release tags for automated workflow triggers.
 
 ```bash
-npx @nyron/cli tag --prefix v --version 1.2.0
+npx @nyron/cli push-tag
+```
+
+**What it does:**
+1. Generates a unique nyron-release tag with timestamp
+2. Creates and pushes the tag to remote repository
+3. Triggers automated release workflows
+
+---
+
+### `nyron release`
+
+Create GitHub releases with auto-generated changelogs.
+
+```bash
+npx @nyron/cli release
+npx @nyron/cli release --dry-run
 ```
 
 **Options:**
-- `-p, --prefix <prefix>` - **Required.** Tag prefix (e.g., `v`, `@my-pkg/sdk@`)
-- `-v, --version <version>` - **Required.** Semantic version (e.g., `1.0.0`)
+- `-d, --dry-run` - Preview changelog without creating release
+
+**What it does:**
+1. Finds commits between nyron-release tags and HEAD
+2. Generates changelog from conventional commits
+3. Creates GitHub release with changelog description
 
 ---
 
@@ -253,25 +262,27 @@ export default defineConfig({
 
 ## Workflow
 
-Here's a typical versioning workflow with Nyron:
+Here's the complete versioning workflow with Nyron:
 
 ```bash
-# 1. Check what's changed
-npx @nyron/cli diff --prefix v
-
-# 2. Bump version and generate changelog
+# 1. Bump version and generate changelog
 npx @nyron/cli bump --type minor --prefix v
 
-# 3. Commit the changes
+# 2. Commit the changes
 git add .
 git commit -m "chore: bump version to 1.2.0"
 
-# 4. Create and push the tag
-npx @nyron/cli tag --prefix v --version 1.2.0
-git push && git push --tags
+# 3. Create and push nyron-release tag
+npx @nyron/cli push-tag
+
+# 4. Create GitHub release
+npx @nyron/cli release
+
+# 5. Push your commits
+git push
 ```
 
-**Pro tip:** Nyron's `bump` command can remind you to push tags automatically if `onPushReminder: true` in your config.
+**Pro tip:** Use `npx @nyron/cli release --dry-run` to preview what will be included in the release before creating it.
 
 ---
 
@@ -329,7 +340,7 @@ Yes. Nyron parses commit messages to generate changelogs. If your commits don't 
 
 ### Can I use this without GitHub?
 
-Not yet. Nyron currently depends on GitHub for repository metadata and enriched commit information (author links, avatars, commit URLs). Support for other platforms is planned.
+No. Nyron requires GitHub for repository metadata and commit information. A GitHub token is mandatory for all operations.
 
 ### Does it work with monorepos?
 
@@ -337,7 +348,7 @@ Absolutely. Define multiple projects in your config with different `tagPrefix` v
 
 ### What if I don't have a GitHub token?
 
-Nyron will still work, but changelogs won't include GitHub usernames, avatars, or commit URLs—just the git author name.
+Nyron will not work without a GitHub token. You must set the `GITHUB_TOKEN` environment variable for Nyron to function properly.
 
 ---
 

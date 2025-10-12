@@ -9,24 +9,9 @@ Here's a typical end-to-end versioning workflow using Nyron, from checking chang
 
 ## Complete Release Workflow
 
-### 1. Check what's changed
+### 1. Bump version and generate changelog
 
-First, review the commits since your last release:
-
-```bash
-npx @nyron/cli diff --prefix v
-```
-
-This shows you:
-- What features were added
-- What bugs were fixed
-- What maintenance work was done
-
-Use this to decide on the type of version bump (major, minor, or patch).
-
-### 2. Bump version and generate changelog
-
-Once you've decided on the version type, run:
+Start by bumping the version and generating a changelog:
 
 ```bash
 npx @nyron/cli bump --type minor --prefix v
@@ -36,12 +21,13 @@ This will:
 - Increment the version number
 - Generate a changelog based on your commits
 - Update your `package.json` file
+- Create metadata in the `.nyron/` directory
 
-### 3. Review the changes
+### 2. Review the changes
 
 Check the generated changelog and version changes to make sure everything looks correct.
 
-### 4. Commit the changes
+### 3. Commit the changes
 
 Commit the version bump and changelog updates:
 
@@ -50,42 +36,57 @@ git add .
 git commit -m "chore: bump version to 1.2.0"
 ```
 
-### 5. Create and push the tag
+### 4. Create and push nyron-release tag
 
-Create a git tag for the release:
+Create a nyron-release tag that triggers the release workflow:
 
 ```bash
-npx @nyron/cli tag --prefix v --version 1.2.0
+npx @nyron/cli push-tag
 ```
 
-### 6. Push everything
+This creates and pushes a tag like `nyron-release@2024-01-15@14-30-25.123`.
 
-Push your commits and tags to the remote repository:
+### 5. Create GitHub release
+
+Generate the GitHub release with auto-generated changelog:
 
 ```bash
-git push && git push --tags
+npx @nyron/cli release
+```
+
+This will:
+- Find commits since the last nyron-release tag
+- Generate a changelog from conventional commits
+- Create a GitHub release with the changelog
+
+### 6. Push your commits
+
+Finally, push your version bump commits:
+
+```bash
+git push
 ```
 
 ## Monorepo Workflow
 
-For monorepos with multiple packages, the workflow is similar but you specify which package to release:
+For monorepos with multiple packages, the workflow is the same but you specify which package to release:
 
 ```bash
-# Check changes for a specific package
-npx @nyron/cli diff --prefix @myapp/api@
-
-# Bump that package
+# Bump specific package
 npx @nyron/cli bump --type patch --prefix @myapp/api@
 
 # Commit changes
 git add .
 git commit -m "chore(api): bump version to 1.0.1"
 
-# Tag the release
-npx @nyron/cli tag --prefix @myapp/api@ --version 1.0.1
+# Create nyron-release tag
+npx @nyron/cli push-tag
 
-# Push
-git push && git push --tags
+# Create GitHub release
+npx @nyron/cli release
+
+# Push commits
+git push
 ```
 
 ## Version Bump Decision Guide
@@ -128,9 +129,13 @@ Example: `1.5.2` → `1.5.3`
 
 If you have `onPushReminder: true` in your config, Nyron will remind you to push your tags after creating them.
 
-### Preview before bumping
+### Preview releases
 
-Always run `nyron diff` first to see what will be included in the changelog.
+You can preview what will be included in a release using the dry-run flag:
+
+```bash
+npx @nyron/cli release --dry-run
+```
 
 ### Consistent commit messages
 
@@ -149,4 +154,5 @@ For the best experience with Nyron, configure your GitHub repository to enforce 
 - Learn about all available [commands](/docs/commands)
 - Understand [how Nyron works](/docs/guides/how-it-works) under the hood
 - Review [configuration options](/docs/getting-started/configuration)
+- Set up [GitHub repository settings](/docs/guides/conventional-commits#github-repository-setup)
 
