@@ -13,6 +13,9 @@
 
 import type { CommitDiff, ParsedCommits } from "./types"
 
+const PullRequestRE = /\([ a-z]*(#\d+)\s*\)/gm;
+const IssueRE = /(#\d+)/gm;
+
 /**
  * Filters out meta commits (version bumps, changelog updates) from a list of commits.
  * 
@@ -78,6 +81,15 @@ export function parseCommits(commits: CommitDiff[]): ParsedCommits {
   for (const commit of commits) {
     const raw = commit.message.trim()
 
+    // Extract PR and issue numbers
+    const prMatch = raw.match(PullRequestRE)
+    const pullRequestNumber = prMatch ? parseInt(prMatch[0].match(/#(\d+)/)?.[1] || '0') : undefined
+    const pullRequestUrl = pullRequestNumber ? `https://github.com/${commit.repo}/pull/${pullRequestNumber}` : undefined
+
+    const issueMatch = raw.match(IssueRE)
+    const issueNumber = issueMatch && !prMatch ? parseInt(issueMatch[0].replace('#', '')) : undefined
+    const issueUrl = issueNumber ? `https://github.com/${commit.repo}/issues/${issueNumber}` : undefined
+
     // Match conventional commits: type(scope?): message
     const match = raw.match(/^(\w+)(?:\(([^)]+)\))?:\s*(.+)$/)
     if (!match) {
@@ -93,7 +105,11 @@ export function parseCommits(commits: CommitDiff[]): ParsedCommits {
         repo: commit.repo,
         githubUser: commit.githubUser,
         avatar: commit.avatar,
-        url: commit.url
+        url: commit.url,
+        pullRequestNumber,
+        pullRequestUrl,
+        issueNumber,
+        issueUrl
       })
       continue
     }
@@ -116,7 +132,11 @@ export function parseCommits(commits: CommitDiff[]): ParsedCommits {
       repo: commit.repo,
       githubUser: commit.githubUser,
       avatar: commit.avatar,
-      url: commit.url
+      url: commit.url,
+      pullRequestNumber,
+      pullRequestUrl,
+      issueNumber,
+      issueUrl
     })
   }
   return groups

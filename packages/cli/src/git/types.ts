@@ -11,6 +11,8 @@ export interface CommitDiff {
 export interface ParsedCommit {
     type: string
     scope?: string
+    issueNumber?: number
+    pullRequestNumber?: number
     author: string
     repo: string
     hash: string
@@ -19,6 +21,8 @@ export interface ParsedCommit {
     githubUser?: string
     avatar?: string
     url?: string
+    issueUrl?: string
+    pullRequestUrl?: string
   }
   
   export interface ParsedCommits {
