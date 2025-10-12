@@ -1,4 +1,4 @@
-import { bumpVersion, isNewer, isBeta, enterBeta, isOlder } from "../src/core/semver"
+import { bumpVersion, isNewer, isBeta, enterBeta, isOlder } from "../../src/core/semver"
 import { describe, it, expect } from "bun:test"
 
 describe("semver", () => {
