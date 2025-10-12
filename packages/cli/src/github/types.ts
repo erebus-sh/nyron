@@ -50,6 +50,7 @@ export function resolveOctokit(clientOrContext?: OctokitClientOrContext): Octoki
 export interface CommitDiff {
   hash: string
   message: string
+  affectedFolders: string[]
   repo: string
   author: string
   githubUser?: string

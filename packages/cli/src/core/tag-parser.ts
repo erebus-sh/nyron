@@ -7,6 +7,8 @@ export interface TagParts {
   prerelease: boolean
 }
 
+export const NYRON_RELEASE_PREFIX = "nyron-release"
+
 /**
  * Parses a tag string into its prefix and version components.
  *
@@ -74,5 +76,5 @@ export function buildTag(prefix: string, version: string): string {
  */
 export function generateNyronReleaseTag(): string {
   const date = new Date().toISOString().replace("T", "@").replace("Z", "")
-  return `nyron-release@${date}`
+  return `${NYRON_RELEASE_PREFIX}@${date}`
 }

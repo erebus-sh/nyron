@@ -2,14 +2,7 @@ import { mkdir } from "fs/promises"
 import { writeFile, fileExists } from "../../core/files"
 import { renderTemplate } from "../../utils/renderTemplate"
 import { buildChangelogPath, buildChangelogDir } from "./file-parser"
-
-interface WriteChangelogOptions {
-    prefix: string
-    version: string
-    features: string[]
-    fixes: string[]
-    chores: string[]
-}
+import type { WriteChangelogOptions } from "./types"
 
 export async function writeChangelog(options: WriteChangelogOptions) {
     const content = renderTemplate("default", {

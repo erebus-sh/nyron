@@ -1,6 +1,6 @@
 # Changelog for {{package}}
 
-## {{version}} ({{date}})
+## {{version}}
 
 {{#if features}}
 ### ✨ Features

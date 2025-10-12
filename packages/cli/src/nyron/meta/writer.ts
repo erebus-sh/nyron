@@ -28,7 +28,7 @@ import type { BumpType } from "../../core/types"
  * @example
  * ```typescript
  * const meta = {
- *   packages: [{ name: "my-package", version: "1.0.0" }],
+ *   packages: [{ prefix: "my-package", version: "1.0.0" }],
  *   createdAt: new Date(),
  *   latestTag: undefined
  * }
@@ -68,18 +68,18 @@ export async function writeMeta(meta: Meta) {
  */
 export async function bumpMetaVersionOfPrefix(prefix: string, type: BumpType): Promise<string> {
     const meta = await readMeta()
-    const project = meta.packages.find(p => p.name === prefix)
+    const project = meta.packages.find(p => p.prefix === prefix)
     if (!project) {
         throw new Error(`Project with prefix ${prefix} not found`)
     }
     const newPackages = meta.packages.map(p =>
-        p.name === prefix
+        p.prefix === prefix
             ? { ...p, version: bumpVersion(p.version, type) }
             : p
     ) as typeof meta.packages
     const newMeta: Meta = { ...meta, packages: newPackages }
     await writeMeta(newMeta)
-    return newMeta.packages.find(p => p.name === prefix)?.version as string
+    return newMeta.packages.find(p => p.prefix === prefix)?.version as string
 }
 
 /**

@@ -15,11 +15,11 @@ import { type } from "arktype"
  * for packages managed by Nyron.
  * 
  * @typedef {Object} ProjectType
- * @property {string} name - The package name/prefix identifier
+ * @property {string} prefix - The package name/prefix identifier
  * @property {string} version - The current semantic version string (e.g., "1.0.0")
  */
 const projectType = type({
-    name: "string",
+    prefix: "string",
     version: "string",
 })
 

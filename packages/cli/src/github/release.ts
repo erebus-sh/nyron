@@ -1,19 +1,13 @@
 import { resolveOctokit } from "./types"
 import { parseRepo } from "./repo-parser"
-import { parseTag } from "../git/tag-parser"
 
-export async function createRelease(repo: string, tag: string, body: string,  clientOrContext?: unknown) {
+export async function getLatestRelease(repo: string, prerelease: boolean, clientOrContext?: unknown) {
   const octokit = resolveOctokit(clientOrContext as any)
   const { owner, repo: repoName } = parseRepo(repo)
-  const tagParts = parseTag(tag)
-  throw new Error("Not implemented")
-  const release = await octokit.rest.repos.createRelease({
+  const releases = await octokit.rest.repos.listReleases({
     owner,
     repo: repoName,
-    tag_name: tag,
-    name: tagParts?.version,
-    body,
-    prerelease: tagParts?.prerelease,
+    prerelease,
   })
-  return release
+  return releases.data[0]
 }

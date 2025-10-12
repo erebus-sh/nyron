@@ -30,7 +30,22 @@ async function fetchCommitsFromComparison(
     const authorEmail = commit.commit.author?.email || "unknown";
     const gitFormatAuthor = `${authorName} <${authorEmail}>`;
 
-    return ({
+    // Extract affected folders using the same mechanism as in diff.ts
+    const affectedFolders = (commit.files || [])
+      .map((file) => file.filename)
+      .filter((f): f is string => Boolean(f))
+      .map((filename) => {
+        const parts = filename.split("/");
+        // If file is at root, return the file itself as the "folder"
+        if (parts.length === 1) return parts[0];
+        // Otherwise, return the top-level folder (or top two levels for monorepos, etc.)
+        return parts.slice(0, 2).join("/");
+      })
+      .filter((f): f is string => Boolean(f))
+      .sort()
+      .filter((folder, idx, arr) => idx === 0 || folder !== arr[idx - 1]);
+
+    return {
       hash: commit.sha,
       message: commit.commit.message,
       author: gitFormatAuthor,
@@ -38,7 +53,8 @@ async function fetchCommitsFromComparison(
       githubUser: commit.author?.login,
       avatar: commit.author?.avatar_url,
       url: commit.html_url,
-    })
+      affectedFolders,
+    };
   });
 }
 
