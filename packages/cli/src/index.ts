@@ -1,7 +1,6 @@
 #!/usr/bin/env bun
 import { program } from "commander"
 import { bump } from "./actions/bump"
-import { diff } from "./actions/diff"
 import { init } from "./actions/init"
 import { release } from "./actions/release"
 import { BumpType } from "./core/types"
@@ -15,7 +14,7 @@ dotenv.config({
 program
   .name("nyron")
   .description("Nyron CLI — smart multi-package versioning and changelog management")
-  .version("0.5.0")
+  .version("0.5.1")
 
 // -----------------------------
 // bump
@@ -32,17 +31,6 @@ program
     return
   })
 
-// -----------------------------
-// diff
-// -----------------------------
-program
-  .command("diff")
-  .description("Show commits since last release for all projects")
-  .option("-f, --prefix <prefix>", "Filter by tag prefix")
-  .action(async (options) => {
-    await diff(options)
-    return
-  })
 
 // -----------------------------
 // init
