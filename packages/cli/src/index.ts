@@ -3,7 +3,6 @@ import { program } from "commander"
 import { bump } from "./actions/bump"
 import { diff } from "./actions/diff"
 import { init } from "./actions/init"
-import { tag } from "./actions/tag"
 import dotenv from "dotenv"
 import { BumpType } from "./core/types"
 
@@ -57,7 +56,7 @@ program
   })
 
 // -----------------------------
-// tag
+// Release
 // -----------------------------
 program
   .command("tag")
@@ -65,7 +64,7 @@ program
   .requiredOption("-p, --prefix <prefix>", "Tag prefix (e.g., @my-pkg/sdk@)")
   .requiredOption("-v, --version <version>", "Semantic version (e.g., 1.0.0)")
   .action(async (options) => {
-    await tag(options)
+    await release(options)
     return
   })
 

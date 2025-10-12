@@ -102,19 +102,6 @@ export interface InitResult {
     overwritten: boolean
 }
 
-/**
- * Result returned by the tag action.
- * Contains information about the git tag creation operation.
- */
-export interface TagResult {
-    /** Whether the tag was successfully created */
-    created: boolean
-    /** Whether the tag was successfully pushed to the remote repository */
-    pushed: boolean
-    /** The full tag name that was created */
-    tagName: string
-    /** Whether the tag already existed before the operation */
-    alreadyExists: boolean
-    /** The project name associated with this tag prefix, if found in config */
-    associatedProjectName?: string
+export interface ReleaseOptions extends OptionValues {
+    dryRun?: boolean
 }
