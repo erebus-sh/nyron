@@ -4,17 +4,12 @@
 //                              changelog for all versions                                 changelog for all versions
 //
 
-import { generateNyronReleaseTag } from "../git/tag-parser"
-import { createRelease } from "../github/release"
+import { generateNyronReleaseTag } from "../core/tag-parser"
 import type { ReleaseOptions } from "./types"
 
 export const release = async (options: ReleaseOptions) => {
     const { dryRun } = options
-    const tag = generateNyronReleaseTag()
-    const changelog = await generateChangelog(tag)
-    if (dryRun) {
-        console.log(changelog)
-    } else {
-        await createRelease(tag, changelog)
-    }
+    const nyronReleaseTag = generateNyronReleaseTag()
+    console.log(`🔖 Creating Nyron release tag: ${nyronReleaseTag}`)
+    
 }

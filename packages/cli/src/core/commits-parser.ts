@@ -11,7 +11,8 @@
  * @since 1.0.0
  */
 
-import type { CommitDiff, ParsedCommits } from "./types"
+import type { CommitDiff } from "../github/types"
+import type { ParsedCommits } from "./types"
 
 const PullRequestRE = /\([ a-z]*(#\d+)\s*\)/gm;
 const IssueRE = /(#\d+)/gm;

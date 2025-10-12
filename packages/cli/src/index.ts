@@ -3,8 +3,10 @@ import { program } from "commander"
 import { bump } from "./actions/bump"
 import { diff } from "./actions/diff"
 import { init } from "./actions/init"
-import dotenv from "dotenv"
+import { release } from "./actions/release"
 import { BumpType } from "./core/types"
+
+import dotenv from "dotenv"
 
 dotenv.config({
   quiet: true, // Shhh baby girl...

@@ -46,3 +46,13 @@ export function resolveOctokit(clientOrContext?: OctokitClientOrContext): Octoki
   }
   return getDefaultOctokit()
 }
+
+export interface CommitDiff {
+  hash: string
+  message: string
+  repo: string
+  author: string
+  githubUser?: string
+  avatar?: string
+  url?: string
+}
