@@ -3,9 +3,9 @@
 
 import { getLatestTag, getPreviousTag } from "../git/tags"
 import { getCommitsBetween } from "../github/commits"
-import { parseCommits, organizeForChangelog } from "../git/commits-parser"
-import { parseTag } from "../git/tag-parser"
-import { writeChangelog } from "../changelog/write"
+import { parseCommits, organizeForChangelog } from "../core/commits-parser"
+import { parseTag } from "../core/tag-parser"
+import { writeChangelog } from "../nyron/changelog/write"
 
 export async function generateChangelog(prefix: string, repo: string) {
   const latest = await getLatestTag(prefix)

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test"
-import { parseTag, buildTag } from "../src/git/tag-parser"
+import { parseTag, buildTag } from "../../src/core/tag-parser"
 
 describe("tag-parser", () => {
     // --- parseTag tests ---
