@@ -73,7 +73,7 @@ program
 // -----------------------------
 program
   .command("fix")
-  .description("Fix the release")
+  .description("Validate and repair inconsistencies in your Nyron setup")
   .action(fix)
 
 // -----------------------------
