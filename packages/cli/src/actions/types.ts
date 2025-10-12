@@ -57,19 +57,6 @@ export interface BumpResult {
     prefix: string
     /** The new version that was created (e.g., "1.2.4") */
     newVersion?: string
-    /** The full tag name that was created (e.g., "@my-package/sdk@1.2.4") */
-    tag?: string
-    /** Path to the package.json file that was updated */
-    packagePath?: string
-    /** Information about changelog generation during the bump */
-    changelog?: {
-        /** Whether a changelog was successfully generated */
-        generated: boolean
-        /** Number of commits included in the changelog */
-        commitCount: number
-    }
-    /** Error message if the bump operation failed */
-    error?: string
 }
 
 /**
