@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test"
-import { parseTag, buildTag } from "../../src/core/tag-parser"
+import { parseTag, buildTag, parseNyronReleaseTag, generateNyronReleaseTag } from "../../src/core/tag-parser"
 
 describe("tag-parser", () => {
     // --- parseTag tests ---
@@ -124,5 +124,12 @@ describe("tag-parser", () => {
         const result = buildTag("123@", "1.0.0")
         console.log("buildTag('123@', '1.0.0') =", result)
         expect(result).toEqual("123@1.0.0")
+    })
+
+    it("should parse a nyron release tag", () => {
+        const generatedTag = generateNyronReleaseTag()
+        const result = parseNyronReleaseTag(generatedTag)
+        console.log("parseNyronReleaseTag('" + generatedTag + "') =", result)
+        expect(result).toBeDate()
     })
 })

@@ -1,5 +1,6 @@
 import { resolveOctokit } from "./types"
 import { parseRepo } from "./repo-parser"
+import { parseNyronReleaseTag } from "../core/tag-parser"
 
 export async function getLatestRelease(repo: string, prerelease: boolean, clientOrContext?: unknown) {
   const octokit = resolveOctokit(clientOrContext as any)
@@ -12,13 +13,16 @@ export async function getLatestRelease(repo: string, prerelease: boolean, client
   return releases.data[0]
 }
 
-export async function createRelease(repo: string, tag: string, changelog: string, clientOrContext?: unknown) {
+export async function createRelease(repo: string, nyronReleaseTag: string, changelog: string, clientOrContext?: unknown) {
   const octokit = resolveOctokit(clientOrContext as any)
   const { owner, repo: repoName } = parseRepo(repo)
+  const parsedTag = parseNyronReleaseTag(nyronReleaseTag)
+  const titleRelease = `v${parsedTag?.toISOString()}`
   return await octokit.rest.repos.createRelease({
     owner,
     repo: repoName,
-    tag_name: tag,
+    tag_name: nyronReleaseTag,
+    name: titleRelease,
     body: changelog,
   })
 }
