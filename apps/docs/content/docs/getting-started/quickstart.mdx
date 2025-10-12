@@ -68,10 +68,17 @@ Nyron requires a GitHub token to function properly:
 echo "GITHUB_TOKEN=your_github_token_here" > .env
 ```
 
-Generate a token at [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens)
+Generate a token at [GitHub Settings → Developer settings → Personal access tokens](https://github.com/settings/tokens) and ensure you check **all** of the following permissions:
 
-<Callout type="error">
-A GitHub token is required for Nyron to access repository metadata, commit information, and create releases. Without it, Nyron will not work.
+- `repo` (**Full control of private repositories**)
+- `repo:status` (**Access commit status**)
+- `repo_deployment` (**Access deployment status**)
+- `public_repo` (**Access public repositories**)
+- `repo:invite` (**Access repository invitations**)
+- `security_events` (**Read and write security events**)
+
+<Callout type="warn">
+A GitHub token is required for Nyron to access repository metadata, commit information, and create releases. Be sure to select all the permissions listed above. Without the correct permissions, Nyron will not work.
 </Callout>
 
 ## Start Using Nyron
