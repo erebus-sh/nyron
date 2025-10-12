@@ -9,6 +9,7 @@ describe("commits-parser", () => {
         message: "feat: add feature",
         author: "John Doe",
         repo: "owner/repo",
+        affectedFolders: [],
       }
     ]
     const result = parseCommits(commits)
@@ -25,6 +26,7 @@ describe("commits-parser", () => {
         message: "fix(core): fix bug",
         author: "Jane Doe",
         repo: "owner/repo",
+        affectedFolders: [],
       }
     ]
     const result = parseCommits(commits)
@@ -40,24 +42,28 @@ describe("commits-parser", () => {
         message: "feat(ui): add button",
         author: "A",
         repo: "owner/repo",
+        affectedFolders: [],
       },
       {
         hash: "2",
         message: "fix(api): fix endpoint",
         author: "B",
         repo: "owner/repo",
+        affectedFolders: [],
       },
       {
         hash: "3",
         message: "docs: update readme",
         author: "C",
         repo: "owner/repo",
+        affectedFolders: [],
       },
       {
         hash: "4",
         message: "refactor: cleanup code",
         author: "D",
         repo: "owner/repo",
+        affectedFolders: [],
       }
     ]
     const result = parseCommits(commits)
@@ -74,6 +80,7 @@ describe("commits-parser", () => {
         message: "random commit message",
         author: "E",
         repo: "owner/repo",
+        affectedFolders: [],
       }
     ]
     const result = parseCommits(commits)
@@ -88,6 +95,7 @@ describe("commits-parser", () => {
         message: "build: update deps",
         author: "F",
         repo: "owner/repo",
+        affectedFolders: [],
       }
     ]
     const result = parseCommits(commits)
@@ -102,6 +110,7 @@ describe("commits-parser", () => {
         message: "feat(my-lib): add something",
         author: "G",
         repo: "owner/repo",
+        affectedFolders: [],
       }
     ]
     const result = parseCommits(commits)
@@ -116,6 +125,7 @@ describe("commits-parser", () => {
         message: "  fix:   fix whitespace   ",
         author: "H",
         repo: "owner/repo",
+        affectedFolders: [],
       }
     ]
     const result = parseCommits(commits)
@@ -130,12 +140,14 @@ describe("commits-parser", () => {
         message: "feat(core): add A",
         author: "I",
         repo: "owner/repo",
+        affectedFolders: [],
       },
       {
         hash: "202",
         message: "feat(core): add B",
         author: "J",
         repo: "owner/repo",
+        affectedFolders: [],
       }
     ]
     const result = parseCommits(commits)
@@ -149,9 +161,9 @@ describe("commits-parser", () => {
 describe("organizeForChangelog", () => {
   it("should organize features, fixes, and chores", () => {
     const commits = [
-      { hash: "1", message: "feat: add feature A", author: "A", repo: "owner/repo" },
-      { hash: "2", message: "fix: fix bug B", author: "B", repo: "owner/repo" },
-      { hash: "3", message: "chore: update deps", author: "C", repo: "owner/repo" },
+      { hash: "1", message: "feat: add feature A", author: "A", repo: "owner/repo", affectedFolders: [] },
+      { hash: "2", message: "fix: fix bug B", author: "B", repo: "owner/repo", affectedFolders: [] },
+      { hash: "3", message: "chore: update deps", author: "C", repo: "owner/repo", affectedFolders: [] },
     ]
     const parsed = parseCommits(commits)
     const organized = organizeForChangelog(parsed)
@@ -166,9 +178,9 @@ describe("organizeForChangelog", () => {
 
   it("should add scope labels for scoped commits", () => {
     const commits = [
-      { hash: "1", message: "feat(ui): add button", author: "A", repo: "owner/repo" },
-      { hash: "2", message: "fix(api): fix endpoint", author: "B", repo: "owner/repo" },
-      { hash: "3", message: "docs(readme): update docs", author: "C", repo: "owner/repo" },
+      { hash: "1", message: "feat(ui): add button", author: "A", repo: "owner/repo", affectedFolders: [] },
+      { hash: "2", message: "fix(api): fix endpoint", author: "B", repo: "owner/repo", affectedFolders: [] },
+      { hash: "3", message: "docs(readme): update docs", author: "C", repo: "owner/repo", affectedFolders: [] },
     ]
     const parsed = parseCommits(commits)
     const organized = organizeForChangelog(parsed)
@@ -181,8 +193,8 @@ describe("organizeForChangelog", () => {
 
   it("should not add scope label for general scope", () => {
     const commits = [
-      { hash: "1", message: "feat: add feature", author: "A", repo: "owner/repo" },
-      { hash: "2", message: "fix: fix bug", author: "B", repo: "owner/repo" },
+      { hash: "1", message: "feat: add feature", author: "A", repo: "owner/repo", affectedFolders: [] },
+      { hash: "2", message: "fix: fix bug", author: "B", repo: "owner/repo", affectedFolders: [] },
     ]
     const parsed = parseCommits(commits)
     const organized = organizeForChangelog(parsed)
@@ -193,14 +205,14 @@ describe("organizeForChangelog", () => {
 
   it("should categorize all non-feature/fix types as chores", () => {
     const commits = [
-      { hash: "1", message: "docs: update readme", author: "A", repo: "owner/repo" },
-      { hash: "2", message: "refactor: cleanup", author: "B", repo: "owner/repo" },
-      { hash: "3", message: "perf: optimize", author: "C", repo: "owner/repo" },
-      { hash: "4", message: "test: add tests", author: "D", repo: "owner/repo" },
-      { hash: "5", message: "style: format", author: "E", repo: "owner/repo" },
-      { hash: "6", message: "chore: misc", author: "F", repo: "owner/repo" },
-      { hash: "7", message: "build: update config", author: "G", repo: "owner/repo" },
-      { hash: "8", message: "random message", author: "H", repo: "owner/repo" },
+      { hash: "1", message: "docs: update readme", author: "A", repo: "owner/repo", affectedFolders: [] },
+      { hash: "2", message: "refactor: cleanup", author: "B", repo: "owner/repo", affectedFolders: [] },
+      { hash: "3", message: "perf: optimize", author: "C", repo: "owner/repo", affectedFolders: [] },
+      { hash: "4", message: "test: add tests", author: "D", repo: "owner/repo", affectedFolders: [] },
+      { hash: "5", message: "style: format", author: "E", repo: "owner/repo", affectedFolders: [] },
+      { hash: "6", message: "chore: misc", author: "F", repo: "owner/repo", affectedFolders: [] },
+      { hash: "7", message: "build: update config", author: "G", repo: "owner/repo", affectedFolders: [] },
+      { hash: "8", message: "random message", author: "H", repo: "owner/repo", affectedFolders: [] },
     ]
     const parsed = parseCommits(commits)
     const organized = organizeForChangelog(parsed)
@@ -216,9 +228,9 @@ describe("organizeForChangelog", () => {
 
   it("should handle multiple commits of same type with different scopes", () => {
     const commits = [
-      { hash: "1", message: "feat(ui): add A", author: "A", repo: "owner/repo" },
-      { hash: "2", message: "feat(api): add B", author: "B", repo: "owner/repo" },
-      { hash: "3", message: "feat: add C", author: "C", repo: "owner/repo" },
+      { hash: "1", message: "feat(ui): add A", author: "A", repo: "owner/repo", affectedFolders: [] },
+      { hash: "2", message: "feat(api): add B", author: "B", repo: "owner/repo", affectedFolders: [] },
+      { hash: "3", message: "feat: add C", author: "C", repo: "owner/repo", affectedFolders: [] },
     ]
     const parsed = parseCommits(commits)
     const organized = organizeForChangelog(parsed)
@@ -242,9 +254,9 @@ describe("organizeForChangelog", () => {
 
   it("should handle mixed scopes and general in same type", () => {
     const commits = [
-      { hash: "1", message: "fix(core): fix A", author: "A", repo: "owner/repo" },
-      { hash: "2", message: "fix: fix B", author: "B", repo: "owner/repo" },
-      { hash: "3", message: "fix(utils): fix C", author: "C", repo: "owner/repo" },
+      { hash: "1", message: "fix(core): fix A", author: "A", repo: "owner/repo", affectedFolders: [] },
+      { hash: "2", message: "fix: fix B", author: "B", repo: "owner/repo", affectedFolders: [] },
+      { hash: "3", message: "fix(utils): fix C", author: "C", repo: "owner/repo", affectedFolders: [] },
     ]
     const parsed = parseCommits(commits)
     const organized = organizeForChangelog(parsed)
@@ -257,7 +269,7 @@ describe("organizeForChangelog", () => {
 
   it("should include author and commit hash in output", () => {
     const commits = [
-      { hash: "abc1234567", message: "feat: add feature", author: "John Doe", repo: "owner/repo" },
+      { hash: "abc1234567", message: "feat: add feature", author: "John Doe", repo: "owner/repo", affectedFolders: [] },
     ]
     const parsed = parseCommits(commits)
     const organized = organizeForChangelog(parsed)
