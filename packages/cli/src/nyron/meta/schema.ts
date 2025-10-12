@@ -31,12 +31,12 @@ const projectType = type({
  * 
  * @typedef {Object} MetaSchema
  * @property {ProjectType[]} packages - Array of project definitions with their current versions
- * @property {Date} createdAt - The date when the Nyron project was created
+ * @property {Date} createdAt - The date when the Nyron project was created (parsed from ISO string)
  * @property {string | undefined} latestTag - The latest release tag (matches pattern /^nyron-release@/) or undefined
  */
 export const MetaSchema = type({
-    packages: [projectType],
-    createdAt: "Date",
+    packages: projectType.array(),
+    createdAt: type("string").pipe((s) => new Date(s)),
     latestTag: "(/^nyron-release@/ | undefined)", // Latest tag, if it exists
 })
 

@@ -16,12 +16,12 @@ import { type } from "arktype"
  * @typedef {Object} PackageInfoSchema
  * @property {string} prefix - The package prefix/identifier
  * @property {string} version - The semantic version string (e.g., "1.0.0")
- * @property {Date | undefined} lastPublished - The date when this version was last published, if any
+ * @property {Date | undefined} lastPublished - The date when this version was last published, if any (parsed from ISO string)
  */
 export const PackageInfoSchema = type({
     prefix: "string",
     version: "string",
-    lastPublished: "Date | undefined"
+    lastPublished: type("string | undefined").pipe((s) => s ? new Date(s) : undefined)
 })
 
 /**
