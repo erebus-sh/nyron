@@ -28,6 +28,7 @@ Scans for issues across your setup:
 - **Orphaned packages** - Finds packages in `meta.json` or `versions.json` that aren't in your config
 - **Missing packages** - Finds packages in config that aren't in metadata files
 - **Version mismatches** - Detects when package.json versions differ from meta.json versions
+- **Latest release tag** - Checks if the Nyron release tag in meta.json matches the latest tag in git
 
 ### Phase 2: Auto-fix
 
@@ -36,6 +37,7 @@ Automatically fixes issues without prompting:
 - **Removes orphaned packages** from `meta.json` and `versions.json` (config is source of truth)
 - **Adds missing packages** to `meta.json` and `versions.json` with their current versions
 - **Syncs version mismatches** from `package.json` to `meta.json` (package.json is source of truth)
+- **Updates latest Nyron release tag** in `meta.json` from git tags (keeps track of your latest release)
 
 ### Phase 3: Prompt for Path Issues
 
@@ -82,9 +84,10 @@ Applied fixes:
   3. Added missing package "new-package" to meta.json with version 0.0.0
   4. Added missing package "new-package" to versions.json with version 0.0.0
   5. Synced version for "cli": 1.0.0 → 1.1.0
-  6. Created directory and package.json for "new-package" at packages/new-package
+  6. Updated latest Nyron release tag: (not set) → nyron-release@2024-10-13@12-30-45.678
+  7. Created directory and package.json for "new-package" at packages/new-package
 
-✅ Total: 6 fix(es) applied.
+✅ Total: 7 fix(es) applied.
 ```
 
 ## No Issues Found
@@ -105,6 +108,18 @@ The `fix` command treats your `nyron.config.ts` as the single source of truth:
 - If a package doesn't exist in config → it's removed from metadata files
 
 For version conflicts, `package.json` is the source of truth and metadata is synced to match it.
+
+## Nyron Release Tag Sync
+
+The `fix` command automatically checks and updates the latest Nyron release tag in `meta.json` to match your git repository. This happens every time you run `fix`, even if there are no other issues.
+
+**What it does:**
+- Fetches the latest `nyron-release@` tag from your git repository
+- Compares it with the tag stored in `meta.json`
+- Updates `meta.json` if they don't match (or if no tag is set)
+- Shows `(not set)` in the output if this is the first time setting the tag
+
+This tag is used internally to track releases and generate changelogs between versions. The tag follows the format `nyron-release@YYYY-MM-DD@HH-MM-SS.mmm` and is created when you use [`nyron push-tag`](/docs/commands/push-tag).
 
 ## Best Practices
 

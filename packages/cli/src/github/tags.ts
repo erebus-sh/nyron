@@ -35,7 +35,7 @@ export async function pushNyronReleaseTag(repo: string, clientOrContext?: unknow
       ref: `tags/${tag}`,
     })
 
-    return tagData
+    return { tag, tagData }
   } catch (error: any) {
     // Handle specific GitHub API errors
     if (error.status === 404) {

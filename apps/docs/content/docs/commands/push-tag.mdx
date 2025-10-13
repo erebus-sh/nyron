@@ -20,7 +20,8 @@ The `push-tag` command:
 1. **Generates a unique nyron-release tag** with current timestamp
 2. **Creates the git tag** locally  
 3. **Pushes the tag** to the remote repository
-4. **Triggers automated workflows** that process the .nyron/ directory
+4. **Updates meta.json** with the latest release tag
+5. **Triggers automated workflows** that process the .nyron/ directory
 
 ## Tag Format
 
@@ -86,6 +87,7 @@ Sample output:
 🏷️  Creating nyron-release tag...
 ✓ Generated tag: nyron-release@2024-01-15@14-30-25.123
 ✓ Tag created and pushed successfully
+✅ Updated meta.json with latest tag: nyron-release@2024-01-15@14-30-25.123
 ```
 
 ### After version bump

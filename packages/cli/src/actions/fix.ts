@@ -4,13 +4,14 @@ import { readMeta } from "../nyron/meta/reader"
 import type { Meta } from "../nyron/meta/schema"
 import { readVersions } from "../nyron/versions/reader"
 import type { Versions } from "../nyron/versions/schema"
-import { addMetaPackage, removeMetaPackage, updateMetaPackageVersion } from "../nyron/meta/writer"
+import { addMetaPackage, removeMetaPackage, updateMetaPackageVersion, setMetaLatestTag } from "../nyron/meta/writer"
 import { addVersionsPackage, removeVersionsPackage } from "../nyron/versions/writer"
 import { packageJsonExists, validatePackageJson, getPackageVersion } from "../package/read"
 import { createPackageJson } from "../package/write"
 import { existsSync } from "fs"
 import { resolve } from "path"
 import { ask } from "../core/prompts"
+import { getLatestNyronReleaseTag } from "../git/tags"
 
 interface PathIssue {
     projectName: string
@@ -25,19 +26,21 @@ interface DetectedIssues {
     missingInMeta: string[]
     missingInVersions: string[]
     versionMismatches: Array<{ prefix: string; packageVersion: string; metaVersion: string }>
+    latestTagMismatch: { current: string | undefined; latest: string } | null
 }
 
 /**
  * Phase 1: Detect all issues without fixing anything
  */
-const detectIssues = (meta: Meta, versions: Versions, config: NyronConfig): DetectedIssues => {
+const detectIssues = async (meta: Meta, versions: Versions, config: NyronConfig): Promise<DetectedIssues> => {
     const issues: DetectedIssues = {
         pathIssues: [],
         orphanedInMeta: [],
         orphanedInVersions: [],
         missingInMeta: [],
         missingInVersions: [],
-        versionMismatches: []
+        versionMismatches: [],
+        latestTagMismatch: null
     }
 
     const configPrefixes = new Set(Object.keys(config.projects))
@@ -114,6 +117,19 @@ const detectIssues = (meta: Meta, versions: Versions, config: NyronConfig): Dete
         }
     }
 
+    // Check if latest Nyron release tag needs updating
+    try {
+        const latestTag = await getLatestNyronReleaseTag()
+        if (latestTag && latestTag !== meta.latestTag) {
+            issues.latestTagMismatch = {
+                current: meta.latestTag,
+                latest: latestTag
+            }
+        }
+    } catch {
+        // Silently ignore if we can't get the latest tag (e.g., no git repo)
+    }
+
     return issues
 }
 
@@ -179,6 +195,13 @@ const autoFix = async (issues: DetectedIssues, config: NyronConfig): Promise<str
     for (const mismatch of issues.versionMismatches) {
         await updateMetaPackageVersion(mismatch.prefix, mismatch.packageVersion)
         fixes.push(`Synced version for "${mismatch.prefix}": ${mismatch.metaVersion} → ${mismatch.packageVersion}`)
+    }
+
+    // Update latest Nyron release tag in meta.json
+    if (issues.latestTagMismatch) {
+        await setMetaLatestTag(issues.latestTagMismatch.latest)
+        const currentDisplay = issues.latestTagMismatch.current || "(not set)"
+        fixes.push(`Updated latest Nyron release tag: ${currentDisplay} → ${issues.latestTagMismatch.latest}`)
     }
 
     return fixes
@@ -256,7 +279,7 @@ export const fix = async () => {
     const versions = await readVersions()
 
     // Phase 1: Detect all issues
-    const issues = detectIssues(meta, versions, config)
+    const issues = await detectIssues(meta, versions, config)
 
     // Check if there are any issues
     const hasIssues = 
@@ -265,7 +288,8 @@ export const fix = async () => {
         issues.orphanedInVersions.length > 0 ||
         issues.missingInMeta.length > 0 ||
         issues.missingInVersions.length > 0 ||
-        issues.versionMismatches.length > 0
+        issues.versionMismatches.length > 0 ||
+        issues.latestTagMismatch !== null
 
     if (!hasIssues) {
         console.log("✅ No issues found! Your Nyron setup is in good shape.\n")
