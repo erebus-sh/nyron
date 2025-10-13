@@ -12,7 +12,6 @@ Stop wrestling with manual changelog updates, version bumps, and tag management.
 - ✅ **Smart commit grouping** (Features, Bug Fixes, Chores, etc.)
 - ✅ **Multi-package support** for monorepos
 - ✅ **GitHub integration** for author attribution and commit links
-- ✅ **Zero configuration overhead** to get started
 
 Nyron currently depends on GitHub as the source of truth for your repository metadata and commit information.
 
