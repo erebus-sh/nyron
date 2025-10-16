@@ -18,33 +18,52 @@ export async function getTags(prefix: string) {
 }
 
 /**
- * Returns the latest Nyron release tag based on date comparison.
+ * Returns the latest Nyron release tag (the most recent one by date).
  * Nyron release tags use date format: nyron-release@2024-01-15@14-30-25.123
  *
- * @returns {Promise<string|null>} The latest tag name or null if none exist.
+ * @returns {Promise<string|null>} The latest Nyron release tag or null if none exist.
  */
-export async function getLatestNyronReleaseTag() {
-  const tags = await getTags(NYRON_RELEASE_PREFIX)
-  if (tags.length === 0) return null
+export async function getLatestNyronReleaseTag(): Promise<string | null> {
+  const tags = await getTags(NYRON_RELEASE_PREFIX);
+  // Filter out invalid tags and map to [tag, date]
+  const withParsedDates = tags
+    .map(tag => ({ tag, date: parseNyronReleaseTag(tag) }))
+    .filter(entry => entry.date !== null) as { tag: string; date: Date }[];
 
-  let bestTag: string | null = null
-  let bestDate: Date | null = null
+  if (withParsedDates.length === 0) return null;
 
-  for (const tag of tags) {
-    const date = parseNyronReleaseTag(tag)
-    
-    // Skip invalid tags that don't parse to valid dates
-    if (date === null) continue
-    
-    // Compare dates - later dates are "newer"
-    if (bestDate === null || date > bestDate) {
-      bestDate = date
-      bestTag = tag
-    }
-  }
-
-  return bestTag
+  // Find the tag with the most recent date
+  withParsedDates.filter(entry => entry.tag !== undefined).sort((a, b) => b.date.getTime() - a.date.getTime());
+  return withParsedDates[0]!.tag;
 }
+
+/**
+ * Returns the Nyron release tag *immediately before* the provided tag,
+ * based on parsed date order.
+ *
+ * @param {string} tag - The tag to find the predecessor of.
+ * @returns {Promise<string|null>} The previous release tag, or null if none found.
+ */
+export async function getPreviousLatestNyronReleaseTag(tag: string): Promise<string | null> {
+  const tags = await getTags(NYRON_RELEASE_PREFIX);
+  // Filter out invalid tags and map to [tag, date]
+  const withParsedDates = tags
+    .map(tagName => ({ tag: tagName, date: parseNyronReleaseTag(tagName) }))
+    .filter(entry => entry.date !== null) as { tag: string; date: Date }[];
+
+  if (withParsedDates.length === 0) return null;
+
+  // Sort by date descending (newest first)
+  withParsedDates.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+  const idx = withParsedDates.findIndex(entry => entry.tag === tag);
+  if (idx === -1 || idx === withParsedDates.length - 1) {
+    // Tag not found or is the oldest tag (no previous)
+    return null;
+  }
+  return withParsedDates[idx + 1]!.tag;
+}
+
 
 async function getFirstCommitHash(): Promise<string> {
   try {

@@ -87,15 +87,21 @@ export const release = async (options: ReleaseOptions) => {
     
     if (!dryRun) {
         console.log('\n📍 Step 1: Finding latest release tag...')
-        const latest = await getLatestNyronReleaseTag()
-        if (!latest) {
+        let latestTag: string | null = null
+        if (!options.newTag) {
+          latestTag = await getLatestNyronReleaseTag()
+        }else{
+          // get the version pre the latest tag
+
+        }
+        if (!latestTag) {
           throw new Error(`No nyron release tag found\n   → Make sure to push the tag with nyron tool`)
         }
-        console.log(`✓ Found tag: ${latest}`)
+        console.log(`✓ Found tag: ${latestTag}`)
 
         // Get commits between tags
         console.log('\n📍 Step 2: Fetching commits since last release...')
-        const commits = await getCommitsSince(latest, config.repo)
+        const commits = await getCommitsSince(latestTag, config.repo)
         if (commits.length === 0) {
           console.log('⚠️  No commits found between tags - skipping release')
           return { generated: false, reason: "No commits found between tags" }
@@ -118,12 +124,13 @@ export const release = async (options: ReleaseOptions) => {
         console.log(`✓ Changelog generated (${changelog.length} characters)`)
 
         // Release the changelog
-
-        // Genearate the new nyron release tag
-        console.log('\n📍 Step 6: Generating new nyron release tag...')
-        const newNyronReleaseTag = generateNyronReleaseTag()
-        console.log(`✓ New nyron release tag: ${newNyronReleaseTag}`)
-
+        let newNyronReleaseTag: string = latestTag
+        if (options.newTag) {
+          // Generate the new nyron release tag
+          console.log('\n📍 Step 6: Generating new nyron release tag...')
+          newNyronReleaseTag = generateNyronReleaseTag()
+          console.log(`✓ New nyron release tag: ${newNyronReleaseTag}`)
+        }        
         // Use the new nyron release tag
         console.log('\n📍 Step 6: Creating GitHub release...')
         await createRelease(config.repo, newNyronReleaseTag, changelog)
