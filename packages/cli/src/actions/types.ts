@@ -105,5 +105,5 @@ export interface InitResult {
 export interface ReleaseOptions extends OptionValues {
     dryRun?: boolean
     prerelease?: boolean
-    newTag?: string
+    newTag?: boolean
 }
