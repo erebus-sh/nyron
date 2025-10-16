@@ -7,20 +7,33 @@
  * 
  * ## Mental Model
  * ```
- * nyron-release@date... ---- A ---- B ---- C ---- [changelog] ---- nyron-release@date... ---- D ---- E
- *                            └──────┬──────┘                                                  └─────┬─────┘
- *                            changelog for all versions                                 changelog for all versions
+ * nyron-release@date1 ---- A ---- B ---- C ---- nyron-release@date2 ---- D ---- E ---- HEAD
+ *                          └──────┬──────┘                                └─────┬─────┘
+ *                          commits for date2 release                    commits since date2
  * ```
  * 
  * ## How It Works
  * 
+ * ### Two Modes:
+ * 
+ * **Mode 1: New Tag Release (with -n flag)**
+ * - Used when a nyron-release tag was just created and pushed
+ * - Finds the latest tag (the one just pushed) and the previous tag
+ * - Gets commits BETWEEN these two tags
+ * - Creates GitHub release for the pushed tag
+ * 
+ * **Mode 2: Standard Release (without -n flag)**
+ * - Used for creating a release from existing state
+ * - Finds the latest tag and gets commits from that tag to HEAD
+ * - Creates GitHub release for the latest tag
+ * 
  * ### 1. Tag Discovery
- * - Finds the latest `nyron-release@<timestamp>` tag in the repository
- * - This tag marks the last release point and serves as the starting point for changelog generation
+ * - **With -n**: Finds latest tag (just pushed) and previous tag
+ * - **Without -n**: Finds the latest `nyron-release@<timestamp>` tag
  * 
  * ### 2. Commit Extraction
- * - Fetches all commits between the latest tag and HEAD using GitHub API
- * - Each commit contains: message, author, SHA, and metadata
+ * - **With -n**: Fetches commits BETWEEN previous and latest tag using GitHub API
+ * - **Without -n**: Fetches commits from latest tag to HEAD
  * - If no commits found, the release is skipped (nothing new to release)
  * 
  * ### 3. Commit Parsing
@@ -40,7 +53,7 @@
  * 
  * ### 6. GitHub Release Creation
  * - Creates a GitHub release with the generated changelog as body
- * - Tags the release with the nyron-release tag
+ * - Uses the determined release tag (pushed tag with -n, latest tag without)
  * - Publishes to the repository's releases page
  * 
  * ## Dry Run vs Wet Run
@@ -51,12 +64,11 @@
 import { loadConfig } from "../config"
 import { parseCommits } from "../core/commits-parser"
 import { getLatestNyronReleaseTag, getPreviousLatestNyronReleaseTag } from "../git/tags"
-import { getCommitsSince } from "../github/commits"
+import { getCommitsSince, getCommitsBetween } from "../github/commits"
 import type { ReleaseOptions } from "./types"
 import { generateChangelogMarkdown } from "../changelog/generateChangelog"
 import { getUpdatedVersions } from "../nyron/version"
 import { createRelease } from "../github/release"
-import { generateNyronReleaseTag } from "../core/tag-parser"
 
 /**
  * Creates a GitHub release with an auto-generated changelog.
@@ -85,25 +97,41 @@ export const release = async (options: ReleaseOptions) => {
     const { config } = await loadConfig()
     console.log(`✓ Config loaded for repo: ${config.repo}`)
     
-    // Step 1: Find the latest release tag
-    console.log('\n📍 Step 1: Looking for the latest release tag...')
-    let latestTag: string | null = null
+    // Step 1: Determine which tags to use for the release
+    console.log('\n📍 Step 1: Looking for release tags...')
+    let fromTag: string | null = null
+    let releaseTag: string | null = null
+    
     if (options.newTag) {
-      console.log(`[nyron] -> A new release tag will be used`)
-      // get the version before the latest tag
-      latestTag = await getPreviousLatestNyronReleaseTag()
+      console.log(`[nyron] -> Creating release for newly pushed tag`)
+      // Get the latest tag (the one just pushed)
+      releaseTag = await getLatestNyronReleaseTag()
+      if (!releaseTag) {
+        throw new Error(`No nyron release tag found\n   → Make sure to push the tag with nyron tool`)
+      }
+      console.log(`✓ Release tag: ${releaseTag}`)
+      
+      // Get the previous tag to compare against
+      fromTag = await getPreviousLatestNyronReleaseTag()
+      if (!fromTag) {
+        throw new Error(`No previous nyron release tag found\n   → Cannot create release for first tag`)
+      }
+      console.log(`✓ Previous tag: ${fromTag}`)
     } else {
       console.log('[nyron] -> Using the latest existing release tag')
-      latestTag = await getLatestNyronReleaseTag()
+      fromTag = await getLatestNyronReleaseTag()
+      if (!fromTag) {
+        throw new Error(`No nyron release tag found\n   → Make sure to push the tag with nyron tool`)
+      }
+      releaseTag = fromTag
+      console.log(`✓ Found tag: ${fromTag}`)
     }
-    if (!latestTag) {
-      throw new Error(`No nyron release tag found\n   → Make sure to push the tag with nyron tool`)
-    }
-    console.log(`✓ Found tag: ${latestTag}`)
 
     // Step 2: Get commits between tags
-    console.log('\n📍 Step 2: Fetching commits since last release...')
-    const commits = await getCommitsSince(latestTag, config.repo)
+    console.log('\n📍 Step 2: Fetching commits...')
+    const commits = options.newTag 
+      ? await getCommitsBetween(fromTag!, releaseTag!, config.repo)
+      : await getCommitsSince(fromTag, config.repo)
     if (commits.length === 0) {
       console.log('⚠️  No commits found between tags - skipping release')
       return { generated: false, reason: "No commits found between tags" }
@@ -125,17 +153,9 @@ export const release = async (options: ReleaseOptions) => {
     const changelog = await generateChangelogMarkdown(parsedCommits, versions)
     console.log(`✓ Changelog generated (${changelog.length} characters)`)
 
-    // Step 6: Determine the release tag to use
-    let releaseTag: string = latestTag
-    if (options.newTag) {
-      console.log('\n📍 Step 6: Generating new nyron release tag...')
-      releaseTag = generateNyronReleaseTag()
-      console.log(`✓ New nyron release tag: ${releaseTag}`)
-    }
-
-    // Step 7: Publish or preview
+    // Step 6: Publish or preview
     if (dryRun) {
-      console.log('\n📍 Step 7: Preview (DRY RUN - no release created)')
+      console.log('\n📍 Step 6: Preview (DRY RUN - no release created)')
       console.log(`   Release would be published with tag: ${releaseTag}`)
       console.log('\n' + '='.repeat(80))
       console.log(changelog)
@@ -143,8 +163,8 @@ export const release = async (options: ReleaseOptions) => {
       console.log('✅ Dry run completed - no release was created\n')
       return
     } else {
-      console.log('\n📍 Step 7: Creating GitHub release...')
-      await createRelease(config.repo, releaseTag, changelog)
+      console.log('\n📍 Step 6: Creating GitHub release...')
+      await createRelease(config.repo, releaseTag!, changelog)
       console.log(`✅ Release created successfully!\n`)
       return
     }
