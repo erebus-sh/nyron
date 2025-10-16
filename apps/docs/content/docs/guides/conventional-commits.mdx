@@ -178,6 +178,32 @@ chore: update dependencies (#88)
 When you squash merge a PR, GitHub uses the PR title as the commit message. This means your PR title becomes the commit message that Nyron parses for changelog generation. Make sure your PR titles follow the conventional commit format!
 </Callout>
 
+### Issue References in Commits
+
+You can reference GitHub issues directly in commit messages using `#number` format:
+
+```
+feat(auth): add OAuth2 login support #123
+fix(api): resolve memory leak #456
+```
+
+**Difference between PR and Issue references:**
+
+- **PR references**: Use parentheses `(#42)` - typically added automatically when squash merging
+- **Issue references**: Use plain format `#123` - manually added to reference the issue being fixed
+
+**Examples:**
+
+```bash
+# Referencing an issue in a commit
+git commit -m "fix(auth): resolve token expiration issue #789"
+
+# PR title that will become the commit (when squash merged)
+fix(auth): resolve token expiration issue #789 (#42)
+```
+
+The `#number` format creates clickable links in GitHub that navigate directly to the referenced issue or PR.
+
 ## Next Steps
 
 - Learn [how Nyron works](/docs/guides/how-it-works) with these commits
