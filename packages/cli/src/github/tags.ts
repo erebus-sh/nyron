@@ -10,8 +10,25 @@ export async function pushNyronReleaseTag(repo: string, clientOrContext?: unknow
   const git = simpleGit()
 
   try {
-    // Create the tag locally
-    await git.addTag(tag)
+    // Check if GPG signing is configured
+    let shouldSign = false
+    try {
+      const signingKey = await git.raw(['config', 'user.signingkey'])
+      const tagSign = await git.raw(['config', 'tag.gpgSign']).catch(() => '')
+      shouldSign = signingKey.trim() !== '' || tagSign.trim() === 'true'
+    } catch {
+      // GPG not configured, will create unsigned tag
+      shouldSign = false
+    }
+
+    // Create the tag locally (with signing if available)
+    if (shouldSign) {
+      await git.tag(['-s', '-a', tag, '-m', `Release ${tag}`])
+      console.log(`✓ Created signed tag ${tag}`)
+    } else {
+      await git.addTag(tag)
+      console.log(`✓ Created tag ${tag}`)
+    }
     
     // Push the tag to remote
     await git.pushTags('origin')
