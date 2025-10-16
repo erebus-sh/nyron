@@ -9,67 +9,63 @@ Here's a typical end-to-end versioning workflow using Nyron, from checking chang
 
 ## Complete Release Workflow
 
-### 1. Bump version and generate changelog
+### Basic Workflow (Simplest)
 
-Start by bumping the version and generating a changelog:
+The simplest workflow without manual tag pushing:
 
 ```bash
+# 1. Bump version and generate changelog
 npx @nyron/cli bump --type minor --prefix v
-```
 
-This will:
-- Increment the version number
-- Generate a changelog based on your commits
-- Update your `package.json` file
-- Create metadata in the `.nyron/` directory
-
-### 2. Review the changes
-
-Check the generated changelog and version changes to make sure everything looks correct.
-
-### 3. Commit the changes
-
-Commit the version bump and changelog updates:
-
-```bash
+# 2. Commit changes
 git add .
 git commit -m "chore: bump version to 1.2.0"
-```
 
-### 4. Create and push nyron-release tag
-
-Create a nyron-release tag that triggers the release workflow:
-
-```bash
-npx @nyron/cli push-tag
-```
-
-This creates and pushes a tag like `nyron-release@2024-01-15@14-30-25.123`.
-
-### 5. Create GitHub release
-
-Generate the GitHub release with auto-generated changelog:
-
-```bash
+# 3. Create GitHub release (this also creates the tag)
 npx @nyron/cli release
-```
 
-This will:
-- Find commits since the last nyron-release tag
-- Generate a changelog from conventional commits
-- Create a GitHub release with the changelog
-
-### 6. Push your commits
-
-Finally, push your version bump commits:
-
-```bash
+# 4. Push commits
 git push
 ```
+
+The `release` command automatically:
+- Generates a nyron-release tag with timestamp
+- Creates and pushes the tag to GitHub
+- Creates the GitHub release with auto-generated changelog
+
+### Workflow with GPG-Signed Tags (Advanced)
+
+If you want to GPG-sign your release tags locally before pushing:
+
+```bash
+# 1. Bump version and generate changelog
+npx @nyron/cli bump --type minor --prefix v
+
+# 2. Commit changes
+git add .
+git commit -m "chore: bump version to 1.2.0"
+
+# 3. Create and push GPG-signed tag
+npx @nyron/cli push-tag
+
+# 4. Create GitHub release (skip tag creation with -n)
+npx @nyron/cli release -n
+
+# 5. Push commits
+git push
+```
+
+**Why use this workflow?**
+- GPG signs the tag locally before pushing
+- Provides cryptographic verification
+- Shows "Verified" badge on GitHub
+- Proves authenticity of the release
 
 ## Monorepo Workflow
 
 For monorepos with multiple packages, the workflow is the same but you specify which package to release:
+
+### Basic Monorepo Workflow
 
 ```bash
 # Bump specific package
@@ -79,11 +75,28 @@ npx @nyron/cli bump --type patch --prefix @myapp/api@
 git add .
 git commit -m "chore(api): bump version to 1.0.1"
 
-# Create nyron-release tag
+# Create release (creates tag automatically)
+npx @nyron/cli release
+
+# Push commits
+git push
+```
+
+### With GPG-Signed Tags
+
+```bash
+# Bump specific package
+npx @nyron/cli bump --type patch --prefix @myapp/api@
+
+# Commit changes
+git add .
+git commit -m "chore(api): bump version to 1.0.1"
+
+# Create GPG-signed tag
 npx @nyron/cli push-tag
 
-# Create GitHub release
-npx @nyron/cli release
+# Create release (skip tag creation)
+npx @nyron/cli release -n
 
 # Push commits
 git push
@@ -123,6 +136,112 @@ Use for bug fixes and minor updates:
 
 Example: `1.5.2` → `1.5.3`
 
+## Automated Release Workflow
+
+You can set up a GitHub Actions workflow that automatically creates releases when you push nyron-release tags locally. This is useful for:
+- GPG-signing tags locally before pushing
+- Triggering automated release creation
+- Separating local development from release publishing
+
+### Setup CI/CD Workflow
+
+Create `.github/workflows/release.yml` in your repository:
+
+```yaml
+name: Publish Github Release Using Nyron
+
+on:
+  push:
+    tags:
+      - 'nyron-release@*'
+
+permissions:
+  contents: write
+
+jobs:
+  publish-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history to ensure latest tag is available
+      
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install
+      - run: bun x @nyron/cli release -n
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+```
+
+**Note:** The `-n` flag tells the release command to skip creating a new tag, since you already created it locally with `push-tag`.
+
+### Usage
+
+When ready to release:
+
+```bash
+# 1. Bump and commit
+npx @nyron/cli bump --type minor --prefix v
+git add . && git commit -m "chore: bump version to 1.2.0"
+
+# 2. Push tag (creates GPG-signed tag and triggers the workflow)
+npx @nyron/cli push-tag
+
+# 3. Push your commits
+git push
+
+# The GitHub Actions workflow automatically creates the release! 🎉
+```
+
+### Comparison: Local vs Automated
+
+**Local Release (No CI/CD):**
+```bash
+npx @nyron/cli bump --type minor --prefix v
+git add . && git commit -m "chore: bump version to 1.2.0"
+npx @nyron/cli release  # Creates tag & release locally
+git push
+```
+
+**Automated Release (With CI/CD):**
+```bash
+npx @nyron/cli bump --type minor --prefix v
+git add . && git commit -m "chore: bump version to 1.2.0"
+npx @nyron/cli push-tag  # Creates GPG-signed tag, triggers CI/CD
+git push  # CI/CD creates the release for you
+```
+
+**Benefits of Automated Workflow:**
+- ✅ GPG-sign tags locally for verified releases
+- ✅ Separate concerns (local dev vs release publishing)
+- ✅ Consistent release environment
+- ✅ No need to have `GITHUB_TOKEN` locally
+
+### Customizing the Workflow
+
+You can modify the workflow to use npm, pnpm, or Node.js instead of Bun:
+
+```yaml
+# For npm
+- uses: actions/setup-node@v4
+  with:
+    node-version: '20'
+- run: npm install
+- run: npx @nyron/cli release
+
+# For pnpm
+- uses: pnpm/action-setup@v2
+- uses: actions/setup-node@v4
+  with:
+    node-version: '20'
+    cache: 'pnpm'
+- run: pnpm install
+- run: pnpm exec @nyron/cli release
+```
+
 ## Pro Tips
 
 ### Use the reminder feature
@@ -140,10 +259,6 @@ npx @nyron/cli release --dry-run
 ### Consistent commit messages
 
 The better your commit messages follow [conventional commits](/docs/guides/conventional-commits), the better your changelog will look.
-
-### Automate with CI/CD
-
-You can integrate Nyron into your CI/CD pipeline to automate releases on merge to main or when specific tags are created.
 
 ### Configure GitHub repository settings
 

@@ -19,6 +19,12 @@ npx @nyron/cli release
 npx @nyron/cli release --dry-run
 ```
 
+### Skip tag creation (use existing tag)
+
+```bash
+npx @nyron/cli release -n
+```
+
 ## Options
 
 ### `-d, --dry-run`
@@ -27,6 +33,27 @@ npx @nyron/cli release --dry-run
 
 ```bash
 npx @nyron/cli release --dry-run
+```
+
+### `-n, --no-tag`
+
+**Optional.** Skip creating a new nyron-release tag. Use this when:
+- You already created a tag with `push-tag` command
+- Running in CI/CD after tag was pushed locally
+- You want to use a GPG-signed tag created manually
+
+```bash
+npx @nyron/cli release -n
+```
+
+**Example: Using with push-tag**
+
+```bash
+# Create GPG-signed tag locally
+npx @nyron/cli push-tag
+
+# Create release without creating another tag
+npx @nyron/cli release -n
 ```
 
 ## How It Works
@@ -101,6 +128,8 @@ Sample output:
 
 ## Typical Workflow
 
+### Manual Workflow
+
 The `release` command is typically used as the final step:
 
 ```bash
@@ -118,7 +147,22 @@ npx @nyron/cli push-tag
 npx @nyron/cli release
 ```
 
-See the complete [workflow guide](/docs/guides/workflow) for more details.
+### Automated Workflow (Recommended)
+
+Alternatively, set up a GitHub Actions workflow to automatically run the `release` command when you push a nyron-release tag:
+
+```bash
+# 1. Bump and commit
+npx @nyron/cli bump --type minor --prefix v
+git add . && git commit -m "chore: bump version to 1.2.0"
+
+# 2. Push tag (triggers automated release)
+npx @nyron/cli push-tag
+
+# ✨ The GitHub release is created automatically by CI/CD!
+```
+
+This workflow requires a `.github/workflows/release.yml` file in your repository. See the [automated workflow guide](/docs/guides/workflow#automated-release-workflow) for setup instructions.
 
 ## Error Handling
 
