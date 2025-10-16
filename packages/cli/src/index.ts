@@ -55,7 +55,7 @@ program
   .command("release")
   .description("Create and push a new release")
   .option("-d, --dry-run", "Dry run the release")
-  .option("-n, --new-tag <new-tag>", "The new tag to use for the release")
+  .option("-n, --new-tag", "Use a new tag for the release")
   .option("-p, --prerelease", "Create a prerelease")
   .action(async (options) => {
     await release(options)

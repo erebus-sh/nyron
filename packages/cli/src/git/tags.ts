@@ -32,8 +32,8 @@ export async function getLatestNyronReleaseTag(): Promise<string | null> {
 
   if (withParsedDates.length === 0) return null;
 
-  // Find the tag with the most recent date
-  withParsedDates.filter(entry => entry.tag !== undefined).sort((a, b) => b.date.getTime() - a.date.getTime());
+  // Sort by date descending (newest first)
+  withParsedDates.sort((a, b) => b.date.getTime() - a.date.getTime());
   return withParsedDates[0]!.tag;
 }
 
@@ -44,7 +44,9 @@ export async function getLatestNyronReleaseTag(): Promise<string | null> {
  * @param {string} tag - The tag to find the predecessor of.
  * @returns {Promise<string|null>} The previous release tag, or null if none found.
  */
-export async function getPreviousLatestNyronReleaseTag(tag: string): Promise<string | null> {
+export async function getPreviousLatestNyronReleaseTag(): Promise<string | null> {
+  const latestTag = await getLatestNyronReleaseTag()
+  if (!latestTag) return null
   const tags = await getTags(NYRON_RELEASE_PREFIX);
   // Filter out invalid tags and map to [tag, date]
   const withParsedDates = tags
@@ -56,7 +58,7 @@ export async function getPreviousLatestNyronReleaseTag(tag: string): Promise<str
   // Sort by date descending (newest first)
   withParsedDates.sort((a, b) => b.date.getTime() - a.date.getTime());
 
-  const idx = withParsedDates.findIndex(entry => entry.tag === tag);
+  const idx = withParsedDates.findIndex(entry => entry.tag === latestTag);
   if (idx === -1 || idx === withParsedDates.length - 1) {
     // Tag not found or is the oldest tag (no previous)
     return null;

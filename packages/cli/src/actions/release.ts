@@ -50,7 +50,7 @@
 
 import { loadConfig } from "../config"
 import { parseCommits } from "../core/commits-parser"
-import { getLatestNyronReleaseTag } from "../git/tags"
+import { getLatestNyronReleaseTag, getPreviousLatestNyronReleaseTag } from "../git/tags"
 import { getCommitsSince } from "../github/commits"
 import type { ReleaseOptions } from "./types"
 import { generateChangelogMarkdown } from "../changelog/generateChangelog"
@@ -85,95 +85,67 @@ export const release = async (options: ReleaseOptions) => {
     const { config } = await loadConfig()
     console.log(`✓ Config loaded for repo: ${config.repo}`)
     
-    if (!dryRun) {
-        console.log('\n📍 Step 1: Finding latest release tag...')
-        let latestTag: string | null = null
-        if (!options.newTag) {
-          latestTag = await getLatestNyronReleaseTag()
-        }else{
-          // get the version pre the latest tag
+    // Step 1: Find the latest release tag
+    console.log('\n📍 Step 1: Looking for the latest release tag...')
+    let latestTag: string | null = null
+    if (options.newTag) {
+      console.log(`[nyron] -> A new release tag will be used`)
+      // get the version before the latest tag
+      latestTag = await getPreviousLatestNyronReleaseTag()
+    } else {
+      console.log('[nyron] -> Using the latest existing release tag')
+      latestTag = await getLatestNyronReleaseTag()
+    }
+    if (!latestTag) {
+      throw new Error(`No nyron release tag found\n   → Make sure to push the tag with nyron tool`)
+    }
+    console.log(`✓ Found tag: ${latestTag}`)
 
-        }
-        if (!latestTag) {
-          throw new Error(`No nyron release tag found\n   → Make sure to push the tag with nyron tool`)
-        }
-        console.log(`✓ Found tag: ${latestTag}`)
+    // Step 2: Get commits between tags
+    console.log('\n📍 Step 2: Fetching commits since last release...')
+    const commits = await getCommitsSince(latestTag, config.repo)
+    if (commits.length === 0) {
+      console.log('⚠️  No commits found between tags - skipping release')
+      return { generated: false, reason: "No commits found between tags" }
+    }
+    console.log(`✓ Found ${commits.length} commit(s)`)
+  
+    // Step 3: Parse commits into structured groups
+    console.log('\n📍 Step 3: Parsing commits...')
+    const parsedCommits = parseCommits(commits)
+    console.log(`✓ Parsed commits into groups (features, fixes, etc.)`)
 
-        // Get commits between tags
-        console.log('\n📍 Step 2: Fetching commits since last release...')
-        const commits = await getCommitsSince(latestTag, config.repo)
-        if (commits.length === 0) {
-          console.log('⚠️  No commits found between tags - skipping release')
-          return { generated: false, reason: "No commits found between tags" }
-        }
-        console.log(`✓ Found ${commits.length} commit(s)`)
-      
-        // Parse commits into structured groups
-        console.log('\n📍 Step 3: Parsing commits...')
-        const parsedCommits = parseCommits(commits)
-        console.log(`✓ Parsed commits into groups (features, fixes, etc.)`)
+    // Step 4: Extract versions from meta.json
+    console.log('\n📍 Step 4: Reading version information...')
+    const versions = await getUpdatedVersions()
+    console.log(`✓ Loaded version data for ${versions.length} package(s)`)
 
-        // Extract versions from meta.json
-        console.log('\n📍 Step 4: Reading version information...')
-        const versions = await getUpdatedVersions()
-        console.log(`✓ Loaded version data for ${versions.length} package(s)`)
+    // Step 5: Generate changelog
+    console.log('\n📍 Step 5: Generating changelog...')
+    const changelog = await generateChangelogMarkdown(parsedCommits, versions)
+    console.log(`✓ Changelog generated (${changelog.length} characters)`)
 
-        // Generate changelog
-        console.log('\n📍 Step 5: Generating changelog...')
-        const changelog = await generateChangelogMarkdown(parsedCommits, versions)
-        console.log(`✓ Changelog generated (${changelog.length} characters)`)
+    // Step 6: Determine the release tag to use
+    let releaseTag: string = latestTag
+    if (options.newTag) {
+      console.log('\n📍 Step 6: Generating new nyron release tag...')
+      releaseTag = generateNyronReleaseTag()
+      console.log(`✓ New nyron release tag: ${releaseTag}`)
+    }
 
-        // Release the changelog
-        let newNyronReleaseTag: string = latestTag
-        if (options.newTag) {
-          // Generate the new nyron release tag
-          console.log('\n📍 Step 6: Generating new nyron release tag...')
-          newNyronReleaseTag = generateNyronReleaseTag()
-          console.log(`✓ New nyron release tag: ${newNyronReleaseTag}`)
-        }        
-        // Use the new nyron release tag
-        console.log('\n📍 Step 6: Creating GitHub release...')
-        await createRelease(config.repo, newNyronReleaseTag, changelog)
-        console.log(`✅ Release created successfully!\n`)
-
-        return
-    }else {
-        console.log('\n📍 Step 1: Finding latest release tag...')
-        const latest = await getLatestNyronReleaseTag()
-        if (!latest) {
-          throw new Error(`No nyron release tag found\n   → Make sure to push the tag with nyron tool`)
-        }
-        console.log(`✓ Found tag: ${latest}`)
-
-        // Get commits between tags
-        console.log('\n📍 Step 2: Fetching commits since last release...')
-        const commits = await getCommitsSince(latest, config.repo)
-        if (commits.length === 0) {
-          console.log('⚠️  No commits found between tags - skipping release')
-          return { generated: false, reason: "No commits found between tags" }
-        }
-        console.log(`✓ Found ${commits.length} commit(s)`)
-      
-        // Parse commits into structured groups
-        console.log('\n📍 Step 3: Parsing commits...')
-        const parsedCommits = parseCommits(commits)
-        console.log(`✓ Parsed commits into groups (features, fixes, etc.)`)
-
-        // Extract versions from meta.json
-        console.log('\n📍 Step 4: Reading version information...')
-        const versions = await getUpdatedVersions()
-        console.log(`✓ Loaded version data for ${versions.length} package(s)`)
-
-        // Generate changelog
-        console.log('\n📍 Step 5: Generating changelog...')
-        const changelog = await generateChangelogMarkdown(parsedCommits, versions)
-        console.log(`✓ Changelog generated (${changelog.length} characters)`)
-
-        console.log('\n📍 Step 6: Preview (DRY RUN - no release created)')
-        console.log('\n' + '='.repeat(80))
-        console.log(changelog)
-        console.log('='.repeat(80) + '\n')
-        console.log('✅ Dry run completed - no release was created\n')
-        return
+    // Step 7: Publish or preview
+    if (dryRun) {
+      console.log('\n📍 Step 7: Preview (DRY RUN - no release created)')
+      console.log(`   Release would be published with tag: ${releaseTag}`)
+      console.log('\n' + '='.repeat(80))
+      console.log(changelog)
+      console.log('='.repeat(80) + '\n')
+      console.log('✅ Dry run completed - no release was created\n')
+      return
+    } else {
+      console.log('\n📍 Step 7: Creating GitHub release...')
+      await createRelease(config.repo, releaseTag, changelog)
+      console.log(`✅ Release created successfully!\n`)
+      return
     }
 }
