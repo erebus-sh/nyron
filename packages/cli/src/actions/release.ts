@@ -69,6 +69,8 @@ import type { ReleaseOptions } from "./types"
 import { generateChangelogMarkdown } from "../changelog/generateChangelog"
 import { getUpdatedVersions } from "../nyron/version"
 import { createRelease } from "../github/release"
+import { pushNyronReleaseTag } from "../github/tags"
+import { setMetaLatestTag } from "../nyron/meta/writer"
 
 /**
  * Creates a GitHub release with an auto-generated changelog.
@@ -165,6 +167,12 @@ export const release = async (options: ReleaseOptions) => {
     } else {
       console.log('\n📍 Step 6: Creating GitHub release...')
       await createRelease(config.repo, releaseTag!, changelog)
+      console.log(`✅ Release created successfully!\n`)
+
+      console.log('\n📍 Step 7: Create the new tag for the next release...')
+      const { tag } = await pushNyronReleaseTag(config.repo)
+      // Update meta.json with the new tag
+      await setMetaLatestTag(tag)
       console.log(`✅ Release created successfully!\n`)
       return
     }
